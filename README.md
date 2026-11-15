@@ -43,7 +43,7 @@ The picture at the top is step 2, replayed from recorded sessions. The other ste
 | Repository, tests on Linux, Windows and macOS | Done |
 | Plugin skeleton for Claude Code; its session hook is proven on a live session | Done |
 | Benchmark harness: isolated headless sessions, hidden checks, self-test of every instrument | Done |
-| Benchmark tasks | 31: 22 to tune on, 9 held out to prove what was tuned |
+| Benchmark tasks | 37: 31 to tune on, 6 held out to prove what was tuned |
 | Baseline (no tool, and ponytail as the reference arm) | Measured: [docs/baseline.md](docs/baseline.md) |
 | Rules: seven of them, in two sizes, in English and Spanish | Version 1, measured: [docs/rules.md](docs/rules.md) |
 | The rules reach the session and its subagents | Proven on live sessions, with a word only each hook knows |
@@ -95,7 +95,7 @@ What the rules do not do:
 
 A program that knows what the project has, which is what a prompt cannot be. When a session starts it is told which helpers the project's files share and where its tests are. When an edit replaces a line that another file has too, it is told the file and the line.
 
-On nine tasks nothing was tuned on, five sessions a task ([docs/index.md](docs/index.md)):
+It was proved twice, each time on tasks nothing had been tuned on, five sessions a task ([docs/index.md](docs/index.md)). The first time, on nine tasks:
 
 | Measure | No tool | ponytail | Rules alone | Rules and index | The same, without the rule about tests |
 |---|--:|--:|--:|--:|--:|
@@ -106,13 +106,24 @@ On nine tasks nothing was tuned on, five sessions a task ([docs/index.md](docs/i
 | Cost per session that passed every check | 0.040 $ | 0.055 $ | 0.053 $ | 0.056 $ | 0.041 $ |
 | Time per session | 16 s | 16 s | 26 s | 24 s | 17 s |
 
+Those nine showed that the index did not pay for itself, and that the note about a copy did not see a copy written with other names. Both were worked on, and the result was proved on six new tasks:
+
+| Measure | No tool | Rules alone | Rules and index |
+|---|--:|--:|--:|
+| Passed every hidden check | 21/30 | 26/30 | 27/30 |
+| Reached every place the bug was in | 9/15 | 14/15 | 15/15 |
+| Left a test where the logic needs one | 0/15 | 14/15 | 15/15 |
+| Cost per session | 0.030 $ | 0.050 $ | 0.047 $ |
+| Time per session | 16 s | 25 s | 21 s |
+
 What that says:
 
-- **The note about a copy works where a program can see the copy.** In every run so far it went to 55 sessions, on the four tasks where a bug has a copy of the same shape, and all 55 fixed both places. One of those tasks is the one no wording of a rule could move.
-- **It does not see every copy.** Written with other names for its variables, or fixed by adding to the line, a copy gets no note. Two of the held-out tasks were made that way on purpose, and it said nothing on either, as expected. And on tasks nobody tuned on, the rules alone already reach nearly every place, so there the note shows as five sessions of five against four of five, on one task.
-- **The index does not make a session cheaper.** It takes steps away and adds a list to every call, and the two cancel out: 0.053 $ against 0.052 $. On the tasks it was developed on it had saved a sixth. That did not carry over.
-- **What costs is the tests.** Without the rule that asks for one, a session costs a quarter less and passes the same hidden checks: a change that works then costs what it costs with no tool, and nearly every session produces one, where one in five did not. `OCKHAM_TESTS=off` leaves that rule out. It is in unless asked.
-- **No false warning so far**, in 417 sessions with the index.
+- **The note about a copy works where a program can see the copy.** In every run so far it went to 70 sessions, all on tasks where a bug is written twice, and all 70 fixed both places. One of those tasks is the one no wording of a rule could move.
+- **It sees a line that is written twice, with the same names or with others.** It does not see a fix that only adds to the line, or the same number in another call: of the 87 sessions saved that left a place unfixed, it would point 77.
+- **The index does not make a session cheaper. It makes it shorter.** The same cost as the rules alone on the nine tasks, a twentieth less on the six, and on those a sixth less time. A shorter list and no list at all were tried, and cost the same: what the text saves on every call, the agent spends on more calls.
+- **What costs is the tests.** Without the rule that asks for one, a session costs a quarter less and passes the same hidden checks: a change that works then costs what it costs with no tool, and nearly every session produces one, where one in five did not. The rule ships on, by the owner's decision: "checked" is what the tool promises. `OCKHAM_TESTS=off` leaves it out.
+- **No false warning so far**, in 546 sessions with the index.
+- **And one task nothing helps on.** A redirect after sign-in that three sessions of five leave open to another site, with the rules or without.
 
 ## The benchmark
 
@@ -128,7 +139,7 @@ node bench/run.mjs --held-out --arms ockham --runs 5               # the tasks n
 node bench/trace.mjs hold-reach-points                             # one session, every call it makes
 ```
 
-Each of the first 18 tasks probes one thing a careless change gets wrong. Ten more came with the rules: six held out, and four shaped like the reference tool's failures. Three more came with the index, held out: bug fixes whose logic is copied in another module.
+Each of the first 18 tasks probes one thing a careless change gets wrong. Ten more came with the rules: six held out, and four shaped like the reference tool's failures. Nine more came with the index: three bug fixes whose logic is copied in another module, and the six that are held out today.
 
 | Probes | Tasks | A careless change |
 |---|--:|---|

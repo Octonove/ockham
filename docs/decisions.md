@@ -65,3 +65,11 @@ Told where things are, an agent searches less. Searching was how it came across 
 ## D16. A part of the index is on only when a measurement says so
 
 Each part has its own switch and starts off. What a request brings up (`OCKHAM_HINTS`) stays off: checked without a model, 22 of the 69 symbols it would have brought up were where the good solution works. Where the tests are (`OCKHAM_FACTS`) started off and was switched on when it had been measured: on the tuning tasks it took a tenth off the cost of a session that already had the list, and lost nothing ([index.md](index.md)). Left out: shipping every part that sounds useful. It costs features that exist and are off.
+
+## D17. The rule about tests ships on
+
+Without rule 7 a session costs a quarter less and passes the same hidden checks; with it, nine sessions in ten that need a test leave one ([index.md](index.md)). The owner chose the tests on 15 November 2026: "checked" is what the tool promises. `OCKHAM_TESTS=off` is there for whoever would rather have the cheaper session. Left out: shipping it off and letting people ask for tests. It costs a session a third dearer than it could be. Reopened if a test can be had for fewer steps: the steps are what it costs, not the rule.
+
+## D18. The list stays whole
+
+A list that says only where each helper is and how it is called is less than half the size and costs the same: not told what a helper does, the agent opens the file to find out, and the steps cost what the text had saved. No list at all costs the same again. So the list ships with its sentence about each helper, the form that was measured most ([index.md](index.md)). `OCKHAM_LIST=map` and `=off` are there. Left out: the short form as the default because it looks cheaper. It costs about a thousand tokens on every call of a session. Reopened on a project where 24 helpers are a small part of what is shared.

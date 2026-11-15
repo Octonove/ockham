@@ -8,7 +8,7 @@ An index of the project, and three hooks that read it.
 
 | When | What the session is told | As shipped |
 |---|---|---|
-| The session starts | The helpers the project's files share: name, parameters, file, and the first sentence of the comment above each | on |
+| The session starts | The helpers the project's files share: name, parameters, file, and the first sentence of the comment above each | on; `OCKHAM_LIST=map` leaves the sentences out, `=off` the whole list |
 | | Where the tests are, what runs them, and how one of them begins | on; `OCKHAM_FACTS=off` |
 | A request arrives | What the project already has for the words of the request | off; `OCKHAM_HINTS=on` |
 | Source is about to be written | That the change defines something another file already exports | on |
@@ -246,7 +246,79 @@ What a session that passes every hidden check costs, on the held-out tasks: the 
 
 So Ockham does not make a session cheaper than using no tool, in any form. Without the rule about tests, a change that works costs what it costs with no tool, and nearly every session produces one where one in five did not. With the rule, it costs 40 % more and leaves a test behind in nine sessions of ten that need one.
 
-Which of the two ships as the default is the owner's call. This document only says what each costs.
+The owner chose the tests: the rule ships on ([D17](decisions.md)).
+
+## The second round
+
+The owner kept the rule about tests on ([D17](decisions.md)) and asked for one more round on the list before going on. This is that round, with what the first one had left open.
+
+The nine held-out tasks above had shown that the index did not pay, and that is what this round worked from. So they are tuning tasks from here on, and six new ones were written to prove what came out of it.
+
+### The list, shorter, and without it
+
+`OCKHAM_LIST=map` gives the list as files with the names and parameters of their helpers, and nothing about what each one does: for the project of round 4, 1,181 characters where the whole list is 2,846. `OCKHAM_LIST=off` gives none. The three forms on the nine tasks, three sessions each (run `20261115T130519Z`), with the rules in all of them:
+
+| Measure | Whole list | Short list | No list | Rules alone* |
+|---|--:|--:|--:|--:|
+| Passed every hidden check | 27/27 | 27/27 | 26/27 | 44/45 |
+| Cost per session | 0.052 $ | 0.052 $ | 0.054 $ | 0.052 $ |
+| Time per session | 24 s | 25 s | 27 s | 26 s |
+| Turns (median) | 7 | 8 | 9 | 8 |
+| Tokens a session carried in all | 77,000 | 79,000 | 84,000 | |
+| Wrote a test where none was needed | 1/9 | 4/9 | 7/9 | 3/15 |
+
+\* The first validation, five sessions a task, without the index.
+
+The form of the list does not change what a session costs. The short one takes 1 % off, cheaper in five tasks and dearer in four; none at all adds 3 %. What the shorter text saves on every call, the agent spends on more calls: not told what a helper does, it opens the file to find out. Turns go up a tenth with the short list, in seven tasks of nine, and a fifth with none, and so does everything the session carries.
+
+Without any rules the short list still does the list's job: the helper was reused in 18 sessions of 18 (run `20261115T131202Z`).
+
+So the list ships whole ([D18](decisions.md)). It is not what makes a session dear, and no cheaper form of it was found.
+
+Two things came out of this round that nobody was looking for:
+
+- **The helper that sent sessions the wrong way was not the list's doing.** In `hold-copy-percent` two sessions had taken a helper about discounts for the place the rounding had to match, and the list had named it. A session with no list did the same: it found that helper by searching.
+- **Where the tests are is read as an order.** With no rules at all, a session told where the tests are and how one begins wrote a test 18 times of 18, fifteen of them on tasks that do not ask for one, and cost 0.044 $ where the index alone had cost 0.024 $ on the same tasks before that text was on. The list was the short one this time, which the run above says costs the same; the tests are the difference. With the rules it does not show: they already say when a test is due. The sentence says "a new test goes with them", and it should say where a test goes if one is written.
+
+### The finder: other names, and no pointing back
+
+Two changes, both tried first on every saved session without a model.
+
+**A copy with other names for its own things.** When nothing with the same names is found, the line is compared by its shape: its tokens with the names it gives to its own things blanked, and the words of the library and of the project kept. A line is a copy when it has 85 % of the shorter shape of the two in the same order, two of the things the line is anchored by (a word of the library or the project, or a number), and the part the change took out. `cents - Math.floor(cents * percent / 100)` and `unitCents - Math.floor(unitCents * agreedPercent / 100)` are that. Two lines that only loop over a list are not: nothing in them says what they are about.
+
+**No pointing at the file the change now calls.** Sessions that fixed a copy by making it call the first function were told that the lines they had just taken out were "also in" the file they now called. A change that brings in a name another file exports is not pointed at that file.
+
+Put to the 1,367 sessions saved before the new tasks were run: of the 80 that fixed one place and left another, it points 73 to the place they left, where it pointed 60; of the 1,287 others, none anywhere, as before. Moving the 85 % down to 70 % changes neither number.
+
+### Six tasks written for this round
+
+Written before any of this was run on them, with what was expected of each (`node bench/index-check.mjs` says the same without a model). Run `20261115T133134Z`, five sessions a cell, with the plugin as it ships.
+
+| Task | What it has | Expected of the index | No tool | Rules alone | Rules and index | Notes given |
+|---|---|---|--:|--:|--:|--:|
+| `hold-reach-lockout` | the same line in two files | a note | 1/5 | 5/5 | 5/5 | 5/5 |
+| `hold-reach-stock` | the same condition, in a line that is otherwise another | no note from the file the ticket names | 5/5 | 5/5 | 5/5 | 1/5 |
+| `hold-reach-delivery` | the same call with the same number and another argument | no note | 3/5 | 4/5 | 5/5 | 0/5 |
+| `hold-reuse-duration` | a helper that is in the list | | 5/5 | 5/5 | 5/5 | |
+| `hold-reuse-initials` | a helper the list leaves out, cut at 24 | | 5/5 | 5/5 | 5/5 | |
+| `hold-safe-next` | nothing for the index to say | | 2/5 | 2/5 | 2/5 | |
+
+| Measure | No tool | Rules alone | Rules and index |
+|---|--:|--:|--:|
+| Passed every hidden check | 21/30 | 26/30 | 27/30 |
+| Reached every place | 9/15 | 14/15 | 15/15 |
+| Reused what the project had | 10/10 | 10/10 | 10/10 |
+| Held on input the ticket left out | 27/30 | 27/30 | 27/30 |
+| Left a test where the logic needs one | 0/15 | 14/15 | 15/15 |
+| Cost per session | 0.030 $ | 0.050 $ | 0.047 $ |
+| Time per session | 16 s | 25 s | 21 s |
+| Turns (median) | 6 | 10 | 8 |
+
+- **The notes came where they were expected, and one more.** In `hold-reach-stock` one session began with the other file, from where the copy is found, and was pointed to the one the ticket names. It was right. Six sessions got a note, six fixed every place, and none was pointed back.
+- **A session with the index costs no more.** 5 % less than with the rules alone, cheaper in four tasks of six, which is not a difference to rely on. It is quicker, and that one is: a sixth less time and a quarter fewer turns, in six tasks of six.
+- **Reuse cannot show here either.** With no tool at all, the helper is reused in ten sessions of ten: both tickets say whose way of doing it to follow.
+- **One task nothing helps on.** `hold-safe-next` sends a person back to the page they were on, and three sessions of five leave it open to a link that starts with `/\`, which a browser reads as another site. With the rules or without. Rule 3 says "hostile input" and that was not enough to bring this one to mind.
+- **A report that says what was not done, again.** The one miss of the rules alone closed with: *No other file referenced the "3 days" value.* One does.
 
 ## Where this leaves phase 3
 
@@ -254,27 +326,27 @@ The bar in the [plan](plan.md): "Reuse goes up on the reuse tasks, with almost n
 
 | | |
 |---|---|
-| Reuse | With the index and no rules, 15 sessions of 15 against 16 of 25 with no tool. On top of the rules there was nothing to gain: they already reuse every time |
-| False warnings | None in 417 sessions with the index. The second-version warning never fired. The note about a copy went to 55 sessions, every one in a task where the bug has a copy, and all 55 fixed every place. Two of them got a second note they did not need, pointing back at the file they had fixed first |
-| Cost | A sixth less than the rules alone on the tuning tasks. The same on tasks nothing was tuned on |
-| Not in the plan | The copy of a fixed bug, which no wording of a rule could make an agent look for, is found by a program at the moment of the edit, for copies of the same shape |
+| Reuse | With the index and no rules, 15 sessions of 15 against 16 of 25 with no tool, and 18 of 18 with the short list. On top of the rules there was nothing to gain: they already reuse every time |
+| False warnings | None in 546 sessions with the index. The second-version warning never fired. The note about a copy went to 70 sessions, every one in a task where the bug has a copy, and all 70 fixed every place. Four of them got a second note they did not need, pointing back at the file they had fixed first; none has since the finder was taught not to |
+| Cost | A sixth less than the rules alone on the tasks it was developed on. The same on the nine tasks of the first validation. A twentieth less on the six of the second, and a sixth less time. No form of the list moves it |
+| Not in the plan | The copy of a fixed bug, which no wording of a rule could make an agent look for, is found by a program at the moment of the edit: a copy of the same shape, with the same names or with others |
 
-Reuse was already solved by the rules when this phase began, so the phase could not show much on its own bar. What it leaves is a reuse that no longer depends on the agent searching, a finder of copies, and a cost that is no higher. Whether that closes it is the owner's call.
+Reuse was already solved by the rules when this phase began, so the phase could not show much on its own bar. What it leaves is a reuse that no longer depends on the agent searching, a finder of copies, sessions that are a sixth quicker, and a cost that is no higher. Whether that closes it is the owner's call.
 
 ## Limits
 
 - **JavaScript and TypeScript only**, read with regular expressions. A declaration that does not start at the left margin is not seen.
 - **Small projects.** The benchmark's has 42 source files in its first round and 67 in its last. Nothing here says how a list of 24 helpers serves a project with two thousand, or what the index costs to build there.
-- **The finder sees one shape.** The same line with the same names, and a fix that takes something out of it. Other names, or a fix that only adds, and it is silent. Two in five of the misses in the held-out tasks are of the kind it sees.
+- **The finder sees a line that is written twice.** With the same names or with others, and a fix that takes something out of it. A fix that only adds to the line, or the same condition or the same number in a line that is otherwise another, and it is silent. Of the 87 saved sessions that left a place unfixed, it would point 77.
 - **One model, one host, no shell.** Claude Sonnet 5 in Claude Code, writing files and running nothing.
 - **Five sessions a cell at the most.** The differences relied on here are five in five, or hold across many tasks. The ones that are not are said to be small.
-- **The saving in cost was measured on the tasks the index was developed on,** and did not show on the others. It is reported as it came.
+- **The saving in cost was measured on the tasks the index was developed on,** and on the others it is a session that costs the same and ends sooner. It is reported as it came.
 - **The held-out tasks were written by the person who wrote the finder.** They were written first and their expectations with them, and that is all that can be said for them.
 
 ## Open
 
-- **A shorter list.** It is the part that costs. The names without the comments, or fewer of them, might keep the reuse at a third of the tokens. To be measured, on the reuse tasks, with no rules to hide the answer.
-- **A list that sends the agent the wrong way.** In `hold-copy-percent` a helper about discounts was named, and two sessions took it for the place the rounding had to match.
-- **Copies with other names.** Matching the shape of a line with its variables blanked would have caught `hold-copy-percent`. Left out because it had no task to be proved on that it had not been written for; those three tasks are tuning tasks from the moment it is tried.
-- **The note that points back.** Never from the second file to the first one a note came from.
-- **Which default for the tests.** The owner's.
+- **Where the tests are, said as a fact and not as an order.** "A new test goes with them" makes a session with no rules write one every time. To be reworded and measured with the rules on, where it has cost nothing so far.
+- **An open redirect that gets through three times in five.** `hold-safe-next`, with the rules or without. For a rule, or for the checks of phase 4.
+- **The copies the finder still does not see.** A fix that only adds to the line; the same number in another call. Ten of the 87 saved misses.
+- **Reports of checks that were not made.** Still there with the rules alone. Phase 4.
+- **The budget of `hold-cut-suppliers`,** still the one that was set too tight.
