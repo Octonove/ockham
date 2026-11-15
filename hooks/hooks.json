@@ -1,5 +1,5 @@
 {
-  "description": "Ockham: loads its rules when a session starts.",
+  "description": "Ockham: gives its rules to a session when it starts, and to every agent that session hands work to.",
   "hooks": {
     "SessionStart": [
       {
@@ -8,7 +8,24 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/session-start.mjs"],
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/session-start.mjs"
+            ],
+            "timeout": 10,
+            "statusMessage": "Loading Ockham"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/subagent-start.mjs"
+            ],
             "timeout": 10,
             "statusMessage": "Loading Ockham"
           }

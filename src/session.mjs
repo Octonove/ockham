@@ -1,38 +1,64 @@
-// What Ockham says when a session starts: its rules, in the user's language.
+// What Ockham says to an agent: its rules, in the user's language. A session gets the
+// full text when it starts; an agent it hands work to gets the compact one.
 import { readFileSync } from 'node:fs';
 
 const CANARY = /^[A-Za-z0-9-]{1,40}$/;
 const LANGUAGES = ['en', 'es'];
 
 /**
- * The ruleset in one language. An unknown language gets English; a file that cannot
- * be read gives '' and the session goes on without rules.
+ * The ruleset in one language and one size. An unknown language gets English; a file
+ * that cannot be read gives '' and the agent goes on without rules.
  * @param {string} [language]
+ * @param {string} [size]  'full' or 'compact'
  * @returns {string}
  */
-export function rules(language = 'en') {
+export function rules(language = 'en', size = 'full') {
   const lang = LANGUAGES.includes(language) ? language : 'en';
+  const name = size === 'compact' ? `ockham.compact.${lang}.md` : `ockham.${lang}.md`;
   try {
-    return readFileSync(new URL(`../rules/ockham.${lang}.md`, import.meta.url), 'utf8').trim();
+    return readFileSync(new URL(`../rules/${name}`, import.meta.url), 'utf8').trim();
   } catch {
     return '';
   }
 }
 
 /**
+ * The rules an environment asks for. OCKHAM_RULES=off gives none; =full and =compact
+ * pick a size for everybody; anything else leaves the size to the caller.
+ * OCKHAM_LANG picks the language.
  * @param {Record<string, string | undefined>} env
- *   OCKHAM_RULES=off switches the rules off; OCKHAM_LANG picks their language.
- * @returns {string} the text for the model; empty means say nothing
+ * @param {string} size
+ */
+function rulesFor(env, size) {
+  const asked = String(env.OCKHAM_RULES || '').trim().toLowerCase();
+  if (asked === 'off') return '';
+  const language = String(env.OCKHAM_LANG || 'en').trim().toLowerCase().slice(0, 2);
+  return rules(language, asked === 'full' || asked === 'compact' ? asked : size);
+}
+
+/**
+ * The line a contract test looks for: the only proof that a host really delivered a
+ * hook's output to the model. Only a word of letters, digits and dashes is repeated.
+ * @param {string | undefined} word
+ * @param {string} label
+ */
+function canaryLine(word, label) {
+  const canary = String(word || '').trim();
+  return CANARY.test(canary) ? `Ockham contract test. The ${label} is ${canary}.` : '';
+}
+
+/**
+ * @param {Record<string, string | undefined>} env
+ * @returns {string} the text for a session that starts; empty means say nothing
  */
 export function sessionContext(env) {
-  /** @type {string[]} */
-  const parts = [];
-  if (String(env.OCKHAM_RULES || '').trim().toLowerCase() !== 'off') {
-    parts.push(rules(String(env.OCKHAM_LANG || 'en').trim().toLowerCase().slice(0, 2)));
-  }
-  const canary = String(env.OCKHAM_CANARY || '').trim();
-  // The contract test sets a canary word and asks the model for it: the only proof
-  // that a host really delivered this hook's output to the model.
-  if (CANARY.test(canary)) parts.push(`Ockham contract test. The canary word is ${canary}.`);
-  return parts.filter(Boolean).join('\n\n');
+  return [rulesFor(env, 'full'), canaryLine(env.OCKHAM_CANARY, 'canary word')].filter(Boolean).join('\n\n');
+}
+
+/**
+ * @param {Record<string, string | undefined>} env
+ * @returns {string} the text for a subagent that starts; empty means say nothing
+ */
+export function subagentContext(env) {
+  return [rulesFor(env, 'compact'), canaryLine(env.OCKHAM_SUBAGENT_CANARY, 'subagent canary word')].filter(Boolean).join('\n\n');
 }

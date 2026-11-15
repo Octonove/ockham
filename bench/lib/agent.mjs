@@ -29,7 +29,7 @@ export function findClaude(env = process.env) {
  */
 export function armArgs(arm, env = process.env) {
   if (arm === 'baseline') return [];
-  if (arm === 'ockham') return ['--plugin-dir', REPO];
+  if (arm === 'ockham' || arm === 'ockham-compact') return ['--plugin-dir', REPO];
   if (arm === 'ponytail') {
     const dir = env.OCKHAM_BENCH_PONYTAIL_DIR;
     if (!dir || !existsSync(join(dir, '.claude-plugin', 'plugin.json'))) {
@@ -50,7 +50,7 @@ export function cellEnv(env = process.env) {
   /** @type {Record<string, string>} */
   const out = {};
   for (const [key, value] of Object.entries(env)) {
-    if (value === undefined || /^(CLAUDECODE$|CLAUDE_|ANTHROPIC_|OCKHAM_CANARY$)/.test(key)) continue;
+    if (value === undefined || /^(CLAUDECODE$|CLAUDE_|ANTHROPIC_|OCKHAM_(CANARY|SUBAGENT_CANARY|RULES|LANG)$)/.test(key)) continue;
     out[key] = value;
   }
   out.CLAUDE_CODE_DISABLE_CLAUDE_MDS = '1';
@@ -67,7 +67,10 @@ export function cellEnv(env = process.env) {
  * @returns {Record<string, string>}
  */
 export function armEnv(arm, workRoot) {
-  return arm === 'ponytail' ? { XDG_CONFIG_HOME: join(workRoot, 'xdg') } : {};
+  if (arm === 'ponytail') return { XDG_CONFIG_HOME: join(workRoot, 'xdg') };
+  // The compact ruleset is what subagents get; this arm gives it to the session, to measure it.
+  if (arm === 'ockham-compact') return { OCKHAM_RULES: 'compact' };
+  return {};
 }
 
 /**
@@ -78,8 +81,9 @@ export function armEnv(arm, workRoot) {
  * @param {string} arm
  * @param {string} model
  * @param {number} [maxUsd]
+ * @param {string[]} [tools]
  */
-export function cellArgs(arm, model, maxUsd = 1.5) {
+export function cellArgs(arm, model, maxUsd = 1.5, tools = CELL_TOOLS) {
   return [
     '-p',
     '--output-format', 'json',
@@ -94,18 +98,18 @@ export function cellArgs(arm, model, maxUsd = 1.5) {
     // allowed, because a list of what is not kept missing things: with no shell to run
     // the tests in, sessions started subagents to try, which multiplied the cost of a
     // cell and changed nothing in the code.
-    '--tools', CELL_TOOLS.join(','),
+    '--tools', tools.join(','),
     ...armArgs(arm),
   ];
 }
 
 /**
- * @param {{ prompt: string, cwd: string, arm: string, model: string, timeoutMs?: number, maxUsd?: number, env?: Record<string, string> }} cell
+ * @param {{ prompt: string, cwd: string, arm: string, model: string, timeoutMs?: number, maxUsd?: number, env?: Record<string, string>, tools?: string[] }} cell
  */
-export function runClaude({ prompt, cwd, arm, model, timeoutMs = 600_000, maxUsd, env = cellEnv() }) {
+export function runClaude({ prompt, cwd, arm, model, timeoutMs = 600_000, maxUsd, env = cellEnv(), tools }) {
   return new Promise((resolve) => {
     const started = Date.now();
-    const child = spawn(findClaude(), cellArgs(arm, model, maxUsd), { cwd, env, stdio: ['pipe', 'pipe', 'pipe'] });
+    const child = spawn(findClaude(), cellArgs(arm, model, maxUsd, tools), { cwd, env, stdio: ['pipe', 'pipe', 'pipe'] });
     let stdout = '';
     let stderr = '';
     child.stdout.on('data', (chunk) => { stdout += chunk; });
