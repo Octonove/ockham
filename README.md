@@ -4,8 +4,12 @@
 
 Ockham makes a coding agent write only the code a task needs, reuse what the codebase already has, and check what it wrote before it says "done". For Claude Code and Codex.
 
-> **Status: private, in development. Phases 0 to 2 of 9 are done: the foundations, the benchmark and the rules ([docs/rules.md](docs/rules.md)). Phase 3, the index, is being built.**
-> Installed as a Claude Code plugin, Ockham today gives a session its rules when it starts, and gives every subagent a compact copy. The checks do not exist yet. The rule of the project is that no rule or mechanism ships before a measurement says it helps, so the benchmark came first.
+> **Status: private, in development. Phases 0 to 2 of 9 are done: the foundations, the benchmark and the rules ([docs/rules.md](docs/rules.md)). Phase 3, the index, is built and measured ([docs/index.md](docs/index.md)).**
+> Installed as a Claude Code plugin, Ockham today gives a session its rules when it starts, with a list of what the project already has; tells it where the other copy is when it replaces a line that another file has too; and gives every subagent a compact copy of the rules. The checks at the end of a task do not exist yet. The rule of the project is that no rule or mechanism ships before a measurement says it helps, so the benchmark came first.
+
+![One ticket given to a coding agent without Ockham and with it](docs/demo/points.svg)
+
+*One ticket of the benchmark, without Ockham and with it. Nothing in the picture is staged: it is drawn from two recorded sessions ([docs/demo](docs/demo)), and a test fails if it stops matching them. They are typical ones: in the benchmark, with no tool the second copy of this bug was fixed in no session of five, and with Ockham's note in fifteen of fifteen.*
 
 ## Why
 
@@ -30,7 +34,7 @@ Four moments in every task:
 
 Steps 2 and 3 are what a prompt alone cannot do.
 
-The demos of each step will be recorded from the working tool as its phases land. Nothing shown here will be a mock-up.
+The picture at the top is step 2, replayed from recorded sessions. The other steps will be recorded from the working tool as their phases land. Nothing shown here will be a mock-up.
 
 ## What exists today
 
@@ -39,11 +43,13 @@ The demos of each step will be recorded from the working tool as its phases land
 | Repository, tests on Linux, Windows and macOS | Done |
 | Plugin skeleton for Claude Code; its session hook is proven on a live session | Done |
 | Benchmark harness: isolated headless sessions, hidden checks, self-test of every instrument | Done |
-| Benchmark tasks | 28: 22 to tune the rules on, 6 held out to prove them |
+| Benchmark tasks | 31: 22 to tune on, 9 held out to prove what was tuned |
 | Baseline (no tool, and ponytail as the reference arm) | Measured: [docs/baseline.md](docs/baseline.md) |
 | Rules: seven of them, in two sizes, in English and Spanish | Version 1, measured: [docs/rules.md](docs/rules.md) |
 | The rules reach the session and its subagents | Proven on live sessions, with a word only each hook knows |
-| Index, end-of-task checks, review, memory, band | Phases 3 to 7 |
+| Index of the project: what its files share, told when a session starts, and a note when a change replaces a line that another file has too | Built, measured: [docs/index.md](docs/index.md) |
+| The index reaches the session, at its start and when it writes | Proven on live sessions, on a project whose names cannot be guessed |
+| End-of-task checks, review, memory, band | Phases 4 to 7 |
 
 The plan, with what each phase delivers and how it is checked, is in [docs/plan.md](docs/plan.md). The decisions behind it are in [docs/decisions.md](docs/decisions.md).
 
@@ -81,9 +87,32 @@ On six tasks the rules never saw, they lose nothing; those tasks are too easy to
 
 What the rules do not do:
 
-- **Find the copy of a bug in another module.** In one task, no wording made the agent look for it, and one wording made it say that it had: four sessions of five closed with a search or a check that the project contradicts, and three of those had run nothing. That check is a job for a program, not for a prompt, and it is what phase 4 is for.
-- **Come free.** Ockham costs half as much again as ponytail and takes two thirds longer. Most of that is the tests it leaves behind.
+- **Find the copy of a bug in another module.** In one task, no wording made the agent look for it, and one wording made it say that it had: four sessions of five closed with a search or a check that the project contradicts, and three of those had run nothing. That check is a job for a program, not for a prompt. The index now does part of it, at the moment of the edit; the rest is what phase 4 is for.
+- **Come free.** Ockham costs half as much again as ponytail and takes two thirds longer. Most of that is the tests it leaves behind, which has been measured since: see below.
 - **Write as little as ponytail.** The same at the median, 1.2 lines a session more on the tasks both solve.
+
+## What the index adds
+
+A program that knows what the project has, which is what a prompt cannot be. When a session starts it is told which helpers the project's files share and where its tests are. When an edit replaces a line that another file has too, it is told the file and the line.
+
+On nine tasks nothing was tuned on, five sessions a task ([docs/index.md](docs/index.md)):
+
+| Measure | No tool | ponytail | Rules alone | Rules and index | The same, without the rule about tests |
+|---|--:|--:|--:|--:|--:|
+| Passed every hidden check | 35/45 | 30/45 | 44/45 | 43/45 | 44/45 |
+| Reached every place the bug was in | 15/25 | 10/25 | 24/25 | 23/25 | 24/25 |
+| Left a test where the logic needs one | 4/30 | 6/30 | 25/30 | 28/30 | 0/30 |
+| Cost per session | 0.031 $ | 0.037 $ | 0.052 $ | 0.053 $ | 0.040 $ |
+| Cost per session that passed every check | 0.040 $ | 0.055 $ | 0.053 $ | 0.056 $ | 0.041 $ |
+| Time per session | 16 s | 16 s | 26 s | 24 s | 17 s |
+
+What that says:
+
+- **The note about a copy works where a program can see the copy.** In every run so far it went to 55 sessions, on the four tasks where a bug has a copy of the same shape, and all 55 fixed both places. One of those tasks is the one no wording of a rule could move.
+- **It does not see every copy.** Written with other names for its variables, or fixed by adding to the line, a copy gets no note. Two of the held-out tasks were made that way on purpose, and it said nothing on either, as expected. And on tasks nobody tuned on, the rules alone already reach nearly every place, so there the note shows as five sessions of five against four of five, on one task.
+- **The index does not make a session cheaper.** It takes steps away and adds a list to every call, and the two cancel out: 0.053 $ against 0.052 $. On the tasks it was developed on it had saved a sixth. That did not carry over.
+- **What costs is the tests.** Without the rule that asks for one, a session costs a quarter less and passes the same hidden checks: a change that works then costs what it costs with no tool, and nearly every session produces one, where one in five did not. `OCKHAM_TESTS=off` leaves that rule out. It is in unless asked.
+- **No false warning so far**, in 417 sessions with the index.
 
 ## The benchmark
 
@@ -91,6 +120,7 @@ Every cell is one headless agent session on a fresh copy of a project of some fo
 
 ```bash
 npm run bench:selftest                                             # prove the instruments, no model called
+npm run bench:index                                                # what the index would say on every task, no model called
 npm run hook:live                                                  # prove on real sessions that the hooks reach the model and its subagents
 node bench/run.mjs --arms baseline --runs 1 --model sonnet         # one pass without any tool
 OCKHAM_BENCH_PONYTAIL_DIR=/path/to/ponytail node bench/run.mjs --arms baseline,ponytail,ockham --runs 5
@@ -98,7 +128,7 @@ node bench/run.mjs --held-out --arms ockham --runs 5               # the tasks n
 node bench/trace.mjs hold-reach-points                             # one session, every call it makes
 ```
 
-Each of the first 18 tasks probes one thing a careless change gets wrong. Ten more came with the rules: six held out, and four shaped like the reference tool's failures.
+Each of the first 18 tasks probes one thing a careless change gets wrong. Ten more came with the rules: six held out, and four shaped like the reference tool's failures. Three more came with the index, held out: bug fixes whose logic is copied in another module.
 
 | Probes | Tasks | A careless change |
 |---|--:|---|

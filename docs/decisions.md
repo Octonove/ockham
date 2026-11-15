@@ -49,3 +49,19 @@ What a session is told when it starts does not reach the agents it hands work to
 ## D12. Tasks have rounds, and a held-out task that is looked at stops being proof
 
 A task's project is built from the tasks of its own round and the earlier ones, so adding tasks never changes what an older measurement ran on. Rules are tuned on tuning tasks and proved on held-out ones; once the failures of a held-out task are used to change a rule, it becomes a tuning task and new ones are written. Left out: one growing pool of tasks, where every addition would quietly change the baseline, and reusing the same held-out tasks after tuning on them. It costs writing new tasks for every version of the rules.
+
+## D13. The index speaks at fixed moments and never stops a change
+
+It tells a session what the project shares when the session starts, and adds a note when source is written: that the change defines what another file already exports, or that what it replaces is somewhere else too. The note goes with the edit; the edit goes through. Left out: refusing the write until the agent reuses or fixes, which is what "a warning before writing" first meant. A refusal is right only when the warning is, and it throws away code already paid for. Also left out: a tool the agent would have to remember to call (D4). It costs trusting the agent to act on a note; the benchmark counts when it does not. Reopened if notes are measured being ignored.
+
+## D14. The index lives in the user's cache folder and keeps names, not contents
+
+Outside the project, so nothing appears in the repository and nothing has to be added to `.gitignore`; `OCKHAM_CACHE_DIR` moves it. For every source file it keeps what the file defines (name, kind, line, parameters, the first sentences of the comment above), what it imports, and the names it uses. Of values it keeps only the arithmetic of a constant, such as `0.21`, and not even that when the constant's name smells of a secret. It never keeps a text. Left out: a copy of the code, which a search over lines would want; the lines are read from the files when an edit asks. It costs reading a few files at each edit. Reopened if the index has to answer without reading the project.
+
+## D15. A shortcut comes with the lookup it makes unnecessary
+
+Told where things are, an agent searches less. Searching was how it came across the second copy of a bug: with the tests' location given to it, the session that used to fix both places of a rounding bug fixed one, three times out of three (the pilot, run `20261115T112441Z`, in [index.md](index.md)). So nothing that saves a search goes in without something that does that search for the agent: when a line is replaced, the hook looks for its copies and names them. Left out: giving the shortcut and hoping. It costs building two things for every one. Not reopened: it is what the measurement showed.
+
+## D16. A part of the index is on only when a measurement says so
+
+Each part has its own switch and starts off. What a request brings up (`OCKHAM_HINTS`) stays off: checked without a model, 22 of the 69 symbols it would have brought up were where the good solution works. Where the tests are (`OCKHAM_FACTS`) started off and was switched on when it had been measured: on the tuning tasks it took a tenth off the cost of a session that already had the list, and lost nothing ([index.md](index.md)). Left out: shipping every part that sounds useful. It costs features that exist and are off.

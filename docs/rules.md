@@ -11,7 +11,7 @@ Two sizes of the same seven rules, each in English and Spanish, in `rules/`:
 | `ockham.en.md`, `ockham.es.md` | 314, 329 | a session, when it starts |
 | `ockham.compact.en.md`, `ockham.compact.es.md` | 157, 177 | every agent that session hands work to |
 
-`OCKHAM_RULES=off` loads none; `=full` or `=compact` gives that size to both. `OCKHAM_LANG=es` picks Spanish.
+`OCKHAM_RULES=off` loads none; `=full` or `=compact` gives that size to both. `OCKHAM_LANG=es` picks Spanish. `OCKHAM_TESTS=off` leaves out rule 7, the one that asks for a test, and nothing else: it was added in phase 3, when the tests turned out to be most of what a session with Ockham costs ([index.md](index.md#without-the-rule-about-tests)).
 
 That the text arrives is not assumed. `npm run hook:live` starts real sessions and asks each for a word that only its hook knows: one word for the session, and a different one for a subagent, which the session itself is never given. Both came back on 15 November 2026.
 
@@ -162,7 +162,7 @@ So the bar is met on hidden checks and on tests, and on size it is met at the me
 
 ## Open
 
-- Rule 4: the copy of a fixed bug in another module. To be answered by a check, in phase 4.
-- Rule 7 writes a test in 19 sessions of 40 where the benchmark does not ask for one. That is where the next saving in cost is.
+- Rule 4: the copy of a fixed bug in another module. To be answered by a check, in phase 4. Answered sooner for the copies a program can see: since phase 3, when a line is replaced a hook names the other files that have it ([index.md](index.md#the-copy-of-a-replaced-line)).
+- Rule 7 writes a test in 19 sessions of 40 where the benchmark does not ask for one. That is where the next saving in cost is. Measured in phase 3: without rule 7 a session costs a quarter less and passes the same hidden checks ([index.md](index.md#without-the-rule-about-tests)). Whether it stays on by default is the owner's call.
 - New held-out tasks for version 2: the four hard ones are tuning tasks now.
 - The budget of `hold-cut-suppliers`, to be set like the others (twice its reference) when that round of tasks is next touched, with a larger bloated reference.
