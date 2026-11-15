@@ -4,8 +4,8 @@
 
 Ockham makes a coding agent write only the code a task needs, reuse what the codebase already has, and check what it wrote before it says "done". For Claude Code and Codex.
 
-> **Status: private, in development. Phase 1 of 9.**
-> Nothing here changes how an agent behaves yet. The rule of the project is that no rule or mechanism ships before a measurement says it helps, so the benchmark comes first.
+> **Status: private, in development. Phases 0 and 1 of 9 are done; the rules are next.**
+> Nothing here changes how an agent behaves yet. The rule of the project is that no rule or mechanism ships before a measurement says it helps, so the benchmark came first.
 
 ## Why
 
@@ -45,14 +45,29 @@ The demos of each step will be recorded from the working tool as its phases land
 
 The plan, with what each phase delivers and how it is checked, is in [docs/plan.md](docs/plan.md). The decisions behind it are in [docs/decisions.md](docs/decisions.md).
 
+## What the baseline shows
+
+180 sessions on the benchmark, before Ockham changes anything ([docs/baseline.md](docs/baseline.md)):
+
+| Measure | No tool | ponytail |
+|---|--:|--:|
+| Correct | 90/90 | 90/90 |
+| Reused what the project already had | 16/25 | 25/25 |
+| Reached every place the bug was in | 14/15 | 10/15 |
+| Held on input the ticket left out | 86/90 | 85/90 |
+| Left a test where the logic needs one | 0/50 | 4/50 |
+
+With no tool the agent rewrites what the project already has. With a rule to do less it reuses everything, and then leaves out part of the job and reports the omission as a saving: a CSV export with no quoting, five times out of five. Ockham has to do the first without the second.
+
 ## The benchmark
 
-Every cell is one headless agent session on a fresh copy of a small seed project. The agent gets a ticket and nothing else. What it leaves behind is scored by a check it never saw.
+Every cell is one headless agent session on a fresh copy of a project of some forty source files. The agent gets a ticket and nothing else. What it leaves behind is scored by a check it never saw.
 
 ```bash
 npm run bench:selftest                                             # prove the instruments, no model called
+npm run hook:live                                                  # prove on a real session that the hook reaches the model
 node bench/run.mjs --arms baseline --runs 1 --model sonnet         # one pass without any tool
-OCKHAM_BENCH_PONYTAIL_DIR=/path/to/ponytail node bench/run.mjs --arms baseline,ponytail
+OCKHAM_BENCH_PONYTAIL_DIR=/path/to/ponytail node bench/run.mjs --arms baseline,ponytail --runs 5
 ```
 
 Each of the 18 tasks probes one thing a careless change gets wrong:

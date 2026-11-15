@@ -126,7 +126,9 @@ async function run(args) {
       const agent = await runClaude({ prompt: task.prompt, cwd: work, arm, model, maxUsd, env: { ...cellEnv(), ...armEnv(arm, workRoot) } });
       const score = agent.ok ? await scoreWorkspace(task, seed, work) : null;
       results.push({ task: task.id, kind: task.kind, needsTest: task.needsTest, arm, n, seed, work, agent, score });
-      const verdict = score ? `${score.correct ? 'correct' : 'WRONG'}${score.safe ? '' : ' UNSAFE'}` : `agent failed: ${agent.error}`;
+      // Saved after every cell: a run that is cut short keeps the sessions it paid for.
+      writeFileSync(join(outDir, 'cells.json'), JSON.stringify({ stamp, model, arms, runs, alone, workRoot, unfinished: true, results }, null, 2));
+      const verdict = score ? `${score.correct ? 'correct' : 'WRONG'}${score.safe ? '' : ' (broke on input the ticket left out)'}` : `agent failed: ${agent.error}`;
       console.log(`${task.id} / ${arm} #${n}: ${verdict}`);
     });
   } finally {

@@ -44,7 +44,7 @@ export function report(data) {
     '',
     '## Per arm',
     '',
-    '| arm | correct | safe | reached every caller | reused what existed | added a dependency | within the size budget | test left where the logic needs one | source lines added (median) | cost $ (sum) | time s (median) |',
+    '| arm | correct | held on input the ticket left out | reached every caller | reused what existed | added a dependency | within the size budget | test left where the logic needs one | source lines added (median) | cost $ (sum) | time s (median) |',
     '|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|',
   ];
   for (const arm of data.arms) {
@@ -89,7 +89,8 @@ export function report(data) {
       const flags = cells.map((cell) => {
         const score = cell.score;
         const parts = [score.correct ? 'correct' : 'WRONG'];
-        if (!score.safe) parts.push('UNSAFE');
+        // Outside the safety tasks the input the ticket left out is not an attack: the code is fragile, not unsafe.
+        if (!score.safe) parts.push(cell.kind === 'safety' ? 'UNSAFE' : 'FRAGILE');
         if (score.reach === false) parts.push('MISSED A CALLER');
         if (score.reuse === false) parts.push('did not reuse');
         if (score.depsAdded.length) parts.push(`added ${score.depsAdded.join('+')}`);
