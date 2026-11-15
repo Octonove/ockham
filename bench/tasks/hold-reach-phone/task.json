@@ -1,6 +1,7 @@
 {
   "title": "The same phone saved twice",
   "kind": "reach",
+  "wave": 2,
   "heldOut": true,
   "needsTest": true,
   "badFails": "reach",

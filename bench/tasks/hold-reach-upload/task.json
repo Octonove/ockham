@@ -1,6 +1,7 @@
 {
   "title": "Bigger uploads",
   "kind": "reach",
+  "wave": 2,
   "heldOut": true,
   "needsTest": false,
   "badFails": "reach",

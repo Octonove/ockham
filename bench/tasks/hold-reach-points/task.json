@@ -1,0 +1,8 @@
+{
+  "title": "The reward you have exactly the points for",
+  "kind": "reach",
+  "wave": 3,
+  "needsTest": true,
+  "badFails": "reach",
+  "prompt": "Bug: a customer with exactly 100 points cannot redeem the 100-point reward at checkout. Having the points a reward costs is enough. Fix it."
+}

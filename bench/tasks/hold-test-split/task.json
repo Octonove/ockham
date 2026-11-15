@@ -1,6 +1,7 @@
 {
   "title": "A cent goes missing when a bill is split",
   "kind": "test",
+  "wave": 2,
   "heldOut": true,
   "needsTest": true,
   "badFails": "correct",

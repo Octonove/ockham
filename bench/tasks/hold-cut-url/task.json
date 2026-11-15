@@ -1,6 +1,7 @@
 {
   "title": "A search filter in the catalogue address",
   "kind": "size",
+  "wave": 2,
   "heldOut": true,
   "needsTest": false,
   "budgetLines": 6,

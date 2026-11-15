@@ -1,0 +1,10 @@
+{
+  "title": "Read the labels file",
+  "kind": "size",
+  "wave": 3,
+  "needsTest": true,
+  "budgetLines": 14,
+  "badFails": "safe",
+  "refs": { "bloated": "lean" },
+  "prompt": "Implement parseLabels in src/labels/parse.js. Each line of the labels file is a label written as key = text; parseLabels returns an object with one property per label."
+}

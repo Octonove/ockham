@@ -22,6 +22,8 @@ import { copyTree } from './lib/workspace.mjs';
 import { rules } from '../src/session.mjs';
 
 const RUNS_DIR = fileURLToPath(new URL('./runs/', import.meta.url));
+// The arms that load Ockham, and the size of ruleset each gives the session.
+const RULESET_OF = { ockham: 'full', 'ockham-compact': 'compact' };
 
 /** @param {string[]} argv */
 function parseArgs(argv) {
@@ -49,9 +51,9 @@ const list = (value) => (typeof value === 'string' ? value.split(',').map((item)
  */
 function seedFor(task, all, root, alone) {
   if (alone) return join(task.dir, 'seed');
-  // The project of a tuning task is made of tuning tasks only, so its baseline stays valid when
-  // held-out tasks are added. A held-out task lives in the project with everything in it.
-  const around = task.heldOut ? all : all.filter((other) => !other.heldOut);
+  // A task's project is made of the tasks of its own round and the earlier ones, never of later
+  // ones: what was measured on it stays comparable however many tasks are written afterwards.
+  const around = all.filter((other) => (other.wave ?? 1) <= (task.wave ?? 1));
   return composeSeed(task, around, join(root, '_seeds', task.id));
 }
 
@@ -120,9 +122,13 @@ async function run(args) {
   const outDir = join(RUNS_DIR, stamp);
   mkdirSync(outDir, { recursive: true });
   const seeds = new Map(tasks.map((task) => [task.id, seedFor(task, all, workRoot, alone)]));
-  // Which ruleset the ockham arm ran with: two runs compare only if it is the same text.
-  const rulesText = arms.includes('ockham') ? rules('en') : '';
-  const ruleset = rulesText ? { hash: createHash('sha256').update(rulesText).digest('hex').slice(0, 10), words: rulesText.split(/\s+/).length } : null;
+  // Which ruleset each Ockham arm ran with: two runs compare only if it is the same text.
+  /** @type {Record<string, { hash: string, words: number }>} */
+  const rulesets = {};
+  for (const arm of arms) {
+    const text = arm in RULESET_OF ? rules('en', RULESET_OF[/** @type {keyof typeof RULESET_OF} */ (arm)]) : '';
+    if (text) rulesets[arm] = { hash: createHash('sha256').update(text).digest('hex').slice(0, 10), words: text.split(/\s+/).length };
+  }
 
   /** @type {{ task: import('./lib/tasks.mjs').Task, arm: string, n: number }[]} */
   const cells = [];
@@ -143,7 +149,7 @@ async function run(args) {
       const score = agent.ok ? await scoreWorkspace(task, seed, work) : null;
       results.push({ task: task.id, kind: task.kind, needsTest: task.needsTest, arm, n, seed, work, agent, score });
       // Saved after every cell: a run that is cut short keeps the sessions it paid for.
-      writeFileSync(join(outDir, 'cells.json'), JSON.stringify({ stamp, model, arms, runs, alone, ruleset, workRoot, unfinished: true, results }, null, 2));
+      writeFileSync(join(outDir, 'cells.json'), JSON.stringify({ stamp, model, arms, runs, alone, rulesets, workRoot, unfinished: true, results }, null, 2));
       const verdict = score ? `${score.correct ? 'correct' : 'WRONG'}${score.safe ? '' : ' (broke on input the ticket left out)'}` : `agent failed: ${agent.error}`;
       console.log(`${task.id} / ${arm} #${n}: ${verdict}`);
     });
@@ -155,7 +161,7 @@ async function run(args) {
   // Cells finish in any order; the files keep the order they were planned in.
   const order = new Map(cells.map((cell, index) => [`${cell.task.id}|${cell.arm}|${cell.n}`, index]));
   results.sort((a, b) => (order.get(`${a.task}|${a.arm}|${a.n}`) ?? 0) - (order.get(`${b.task}|${b.arm}|${b.n}`) ?? 0));
-  const data = { stamp, model, arms, runs, alone, ruleset, workRoot, results };
+  const data = { stamp, model, arms, runs, alone, rulesets, workRoot, results };
   writeFileSync(join(outDir, 'cells.json'), JSON.stringify(data, null, 2));
   const text = report(data);
   writeFileSync(join(outDir, 'report.md'), text);

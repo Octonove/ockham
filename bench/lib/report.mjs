@@ -29,7 +29,7 @@ const PROBES = {
 };
 
 /**
- * @param {{ stamp: string, model: string, arms: string[], runs: number, alone?: boolean, ruleset?: { hash: string, words: number } | null, results: any[] }} data
+ * @param {{ stamp: string, model: string, arms: string[], runs: number, alone?: boolean, ruleset?: { hash: string, words: number } | null, rulesets?: Record<string, { hash: string, words: number }>, results: any[] }} data
  * @returns {string}
  */
 export function report(data) {
@@ -41,7 +41,8 @@ export function report(data) {
     '',
     `Model: ${data.model}${resolved.length ? ` (${resolved.join(', ')})` : ''}. Arms: ${data.arms.join(', ')}. ${data.runs} run(s) per task and arm, ${data.results.length} sessions${failed ? `, ${failed} of them failed to run` : ''}.`,
     data.alone ? 'Each task ran on its own seed, with nothing around it.' : 'Each task ran inside the whole project: its seed, surrounded by the finished code of every other task.',
-    ...(data.ruleset ? [`Ockham's ruleset: ${data.ruleset.hash}, ${data.ruleset.words} words.`] : []),
+    // Runs made before there were two sizes of ruleset recorded the one they used under `ruleset`.
+    ...Object.entries(data.rulesets ?? (data.ruleset ? { ockham: data.ruleset } : {})).map(([arm, set]) => `Ruleset of the ${arm} arm: ${set.hash}, ${set.words} words.`),
     'The agent could read and write files but not run commands, so this measures what it writes.',
     '',
     '## Per arm',

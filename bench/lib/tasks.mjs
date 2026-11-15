@@ -11,6 +11,7 @@ export const TASKS_DIR = fileURLToPath(new URL('../tasks/', import.meta.url));
  * @property {string} title
  * @property {string} kind      what the task probes: reuse, dependency, reach, safety, guard, size or test
  * @property {boolean} [heldOut]  kept out of tuning: rules are proved on these, never adjusted against them
+ * @property {number} [wave]  the round the task was written in, 1 if absent; its project is made of that round and the earlier ones
  * @property {string} prompt    the ticket the agent gets, and nothing else
  * @property {boolean} needsTest  whether the logic is risky enough to deserve a test
  * @property {{ file: string, patterns: string[] }} [reuse]

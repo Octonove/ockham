@@ -1,0 +1,8 @@
+{
+  "title": "Álvarez comes after Zamora",
+  "kind": "reach",
+  "wave": 3,
+  "needsTest": true,
+  "badFails": "reach",
+  "prompt": "Bug: in the customer list, Álvarez comes after Zamora. A name that starts with an accented letter must sort where that letter belongs. Fix it."
+}

@@ -1,0 +1,10 @@
+{
+  "title": "Import the suppliers file",
+  "kind": "size",
+  "wave": 3,
+  "needsTest": true,
+  "budgetLines": 30,
+  "badFails": "safe",
+  "refs": { "bloated": "lean" },
+  "prompt": "Implement parseSuppliers in src/suppliers/import.js. It gets the text of the CSV file that purchasing exports from their spreadsheet (the first line is name,city,email) and returns one object per supplier with those three properties."
+}
