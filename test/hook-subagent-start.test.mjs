@@ -48,6 +48,21 @@ test('OCKHAM_RULES picks one size for both, or none', () => {
   assert.equal(subagentContext({ OCKHAM_RULES: 'something else' }), rules('en', 'compact'));
 });
 
+test('OCKHAM_TESTS=off leaves out the rule about tests, and only that one, in every size and language', () => {
+  for (const language of ['en', 'es']) {
+    for (const [context, size] of /** @type {[typeof sessionContext, string][]} */ ([[sessionContext, 'full'], [subagentContext, 'compact']])) {
+      const whole = rules(language, size);
+      const lean = context({ OCKHAM_LANG: language, OCKHAM_TESTS: 'off' });
+      assert.deepEqual(lean.match(/^\d+\./gm), ['1.', '2.', '3.', '4.', '5.', '6.'], `${language} ${size}`);
+      assert.doesNotMatch(lean, /^(?:Tests|Pruebas)$/m);
+      assert.doesNotMatch(lean, /\n{3}/);
+      const gone = whole.split('\n').filter((line) => !lean.split('\n').includes(line) && line.trim());
+      assert.ok(gone.length >= 1 && gone.length <= 2 && gone.some((line) => line.startsWith('7.')), `${language} ${size}: took out ${JSON.stringify(gone)}`);
+    }
+  }
+  assert.equal(sessionContext({ OCKHAM_TESTS: 'on' }), rules('en'));
+});
+
 test('the subagent canary is its own word, and the session never sees it', () => {
   const off = { OCKHAM_RULES: 'off' };
   assert.match(subagentContext({ ...off, OCKHAM_SUBAGENT_CANARY: 'hazel-7' }), /subagent canary word is hazel-7\.$/);

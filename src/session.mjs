@@ -23,17 +23,29 @@ export function rules(language = 'en', size = 'full') {
 }
 
 /**
+ * A ruleset without its rule about tests: rule 7 and the heading over it. The other
+ * rules keep their numbers.
+ * @param {string} text
+ */
+function withoutTests(text) {
+  return text.replace(/^(?:Tests|Pruebas)\n(?=7\.)/m, '').replace(/^7\..*\n?/m, '').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+/**
  * The rules an environment asks for. OCKHAM_RULES=off gives none; =full and =compact
  * pick a size for everybody; anything else leaves the size to the caller.
- * OCKHAM_LANG picks the language.
+ * OCKHAM_LANG picks the language. OCKHAM_TESTS=off leaves out the rule that asks for a
+ * test: tests are most of what a session with Ockham costs, and not everybody wants
+ * them written for them.
  * @param {Record<string, string | undefined>} env
  * @param {string} size
  */
-function rulesFor(env, size) {
+export function rulesFor(env, size) {
   const asked = String(env.OCKHAM_RULES || '').trim().toLowerCase();
   if (asked === 'off') return '';
   const language = String(env.OCKHAM_LANG || 'en').trim().toLowerCase().slice(0, 2);
-  return rules(language, asked === 'full' || asked === 'compact' ? asked : size);
+  const text = rules(language, asked === 'full' || asked === 'compact' ? asked : size);
+  return String(env.OCKHAM_TESTS || '').trim().toLowerCase() === 'off' ? withoutTests(text) : text;
 }
 
 /**

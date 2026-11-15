@@ -1,5 +1,5 @@
 {
-  "description": "Ockham: gives its rules to a session when it starts, and to every agent that session hands work to.",
+  "description": "Ockham: gives a session its rules and what the project already has; when it writes, tells it if another file already has what it defines or what it replaces; gives every subagent the compact rules.",
   "hooks": {
     "SessionStart": [
       {
@@ -28,6 +28,37 @@
             ],
             "timeout": 10,
             "statusMessage": "Loading Ockham"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/prompt-submit.mjs"
+            ],
+            "timeout": 10,
+            "statusMessage": "Looking up what exists"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/pre-write.mjs"
+            ],
+            "timeout": 10,
+            "statusMessage": "Looking up what exists"
           }
         ]
       }

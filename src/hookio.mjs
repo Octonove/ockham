@@ -55,3 +55,39 @@ export function parseInput(text) {
 export function contextOutput(eventName, text) {
   return JSON.stringify({ hookSpecificOutput: { hookEventName: eventName, additionalContext: text } });
 }
+
+/**
+ * Read a hook's JSON input and stop as soon as it is whole: a host may write it and
+ * leave stdin open, and then waiting for the end would cost the whole timeout on
+ * every call. Gives {} for input that never becomes valid JSON.
+ * @param {number} [timeoutMs]
+ * @param {NodeJS.ReadableStream} [stdin]
+ * @returns {Promise<Record<string, any>>}
+ */
+export function readJson(timeoutMs = 1500, stdin = process.stdin) {
+  return new Promise((resolve) => {
+    let data = '';
+    let done = false;
+    const finish = (/** @type {Record<string, any>} */ value) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      resolve(value);
+    };
+    const timer = setTimeout(() => finish(parseInput(data)), timeoutMs);
+    stdin.setEncoding('utf8');
+    stdin.on('data', (chunk) => {
+      data += chunk;
+      // Only text that closes its outermost brace can be whole JSON: no need to try before.
+      if (!data.trimEnd().endsWith('}')) return;
+      try {
+        const value = JSON.parse(data.charCodeAt(0) === BYTE_ORDER_MARK ? data.slice(1) : data);
+        if (value && typeof value === 'object' && !Array.isArray(value)) finish(value);
+      } catch {
+        // not whole yet
+      }
+    });
+    stdin.on('end', () => finish(parseInput(data)));
+    stdin.on('error', () => finish(parseInput(data)));
+  });
+}

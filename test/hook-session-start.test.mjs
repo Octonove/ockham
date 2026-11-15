@@ -15,7 +15,8 @@ const hook = fileURLToPath(new URL('../hooks/session-start.mjs', import.meta.url
 function runHook(env) {
   return new Promise((resolve, reject) => {
     const started = Date.now();
-    const child = spawn(process.execPath, [hook], { env: { ...process.env, ...env }, stdio: ['pipe', 'pipe', 'pipe'] });
+    // The index has tests of its own; here it is off, or the hook would index this repository.
+    const child = spawn(process.execPath, [hook], { env: { ...process.env, OCKHAM_INDEX: 'off', ...env }, stdio: ['pipe', 'pipe', 'pipe'] });
     let stdout = '';
     child.stdout.on('data', (chunk) => { stdout += chunk; });
     const timer = setTimeout(() => { child.kill(); reject(new Error('the hook did not exit')); }, 10_000);

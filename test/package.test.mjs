@@ -45,3 +45,39 @@ test('the CLI prints its version and its help, and rejects what it does not know
   assert.equal(await main(['nope'], out), 1);
   assert.match(lines.pop() ?? '', /Unknown command: nope/);
 });
+
+test('the CLI indexes a folder and finds what it has for a request', async () => {
+  const { mkdirSync, mkdtempSync, rmSync, writeFileSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const base = mkdtempSync(join(tmpdir(), 'ockham-cli-test-'));
+  const here = process.cwd();
+  try {
+    const root = join(base, 'shop');
+    mkdirSync(join(root, 'src', 'lib'), { recursive: true });
+    writeFileSync(join(root, 'src', 'lib', 'text.js'), '/** Turn any text into an identifier for URLs. */\nexport function slugify(text) {}\n');
+    writeFileSync(join(root, 'src', 'catalog.js'), "import { slugify } from './lib/text.js';\nexport function productUrl(product) {}\n");
+    const env = { OCKHAM_CACHE_DIR: join(base, 'cache') };
+    /** @type {string[]} */
+    const lines = [];
+    /** @param {string} line */
+    const out = (line) => { lines.push(line); };
+
+    assert.equal(await main(['index', root], out, env), 0);
+    assert.match(lines[0], /2 source files, 2 symbols, 2 of them exported\.$/);
+    assert.match(lines[1], /^2 file\(s\) read in \d+ ms\. The index is kept in /);
+    assert.match(lines[2], /- slugify\(text\) in src\/lib\/text\.js - Turn any text into an identifier for URLs\./);
+
+    process.chdir(root);
+    lines.length = 0;
+    assert.equal(await main(['find', 'identifier', 'for', 'the', 'URLs', 'of', 'a', 'text'], out, env), 0);
+    assert.deepEqual(lines, ['slugify(text) in src/lib/text.js:2 - Turn any text into an identifier for URLs.']);
+    lines.length = 0;
+    assert.equal(await main(['find', 'nothing', 'like', 'this'], out, env), 0);
+    assert.deepEqual(lines, ['Nothing in this project is named after those words.']);
+    assert.equal(await main(['find'], out, env), 1);
+  } finally {
+    process.chdir(here);
+    rmSync(base, { recursive: true, force: true, maxRetries: 3 });
+  }
+});
