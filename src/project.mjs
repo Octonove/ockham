@@ -5,7 +5,7 @@ import { homedir } from 'node:os';
 import { isAbsolute, join, parse, relative, resolve } from 'node:path';
 
 import { copiesOf } from './index/copies.mjs';
-import { definitionsIn, hintsFor, twinsOf } from './index/lookup.mjs';
+import { definitionsIn, digest, hintsFor, twinsOf } from './index/lookup.mjs';
 import { copiesText, describe, digestText, hintText, testsText, twinText } from './index/say.mjs';
 import { isTest, SOURCE } from './index/scan.mjs';
 import { refresh } from './index/store.mjs';
@@ -16,6 +16,20 @@ import { record, tell, told } from './journal.mjs';
 // cost of a session and lost nothing (docs/index.md).
 const HINTS_BY_DEFAULT = false;
 const FACTS_BY_DEFAULT = true;
+// How the helpers are listed when a session starts (OCKHAM_LIST): 'full' says what each one
+// does, 'map' only where each one is and how it is called, 'off' lists none. The list is
+// carried by every call a session makes, so its length is paid for again and again.
+const LIST_BY_DEFAULT = 'full';
+const LISTS = ['full', 'map', 'off'];
+
+/**
+ * @param {Record<string, string | undefined>} env
+ * @returns {string} one of LISTS
+ */
+export function listFormat(env) {
+  const asked = String(env.OCKHAM_LIST || '').trim().toLowerCase();
+  return LISTS.includes(asked) ? asked : LIST_BY_DEFAULT;
+}
 
 /**
  * OCKHAM_INDEX=off switches off everything that comes from the index.
@@ -109,11 +123,12 @@ export function sharedContext(input, env) {
   const root = indexOn(env) ? projectRoot(input, env) : null;
   if (!root) return '';
   const { index } = refresh(root, { env, budgetMs: 1500 });
-  const shared = digestText(index, language(env));
+  const list = listFormat(env);
+  const shared = list === 'off' ? '' : digestText(index, language(env), list);
   // Nobody who has asked for no tests wants to be shown how the project writes them.
   const wanted = switched(env, 'OCKHAM_FACTS', FACTS_BY_DEFAULT) && String(env.OCKHAM_TESTS || '').trim().toLowerCase() !== 'off';
   const tests = wanted ? testsText(index, { script: testScript(root), head: (file) => headOf(root, file), language: language(env) }) : '';
-  if (shared || tests) record({ event: 'shared', root, session: input.session_id, helpers: shared ? shared.split('\n').length - 1 : 0, tests: Boolean(tests) }, env);
+  if (shared || tests) record({ event: 'shared', root, session: input.session_id, list, helpers: shared ? digest(index).length : 0, tests: Boolean(tests) }, env);
   return [shared, tests].filter(Boolean).join('\n\n');
 }
 

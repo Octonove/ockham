@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { hintsFor } from './index/lookup.mjs';
 import { describe, digestText, testsText } from './index/say.mjs';
 import { indexPath, refresh } from './index/store.mjs';
+import { listFormat } from './project.mjs';
 
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
@@ -43,7 +44,8 @@ export async function main(argv, out = console.log, env = process.env) {
     const symbols = files.flatMap((entry) => entry.symbols);
     out(`${root}: ${files.length} source files, ${symbols.length} symbols, ${symbols.filter((symbol) => symbol.exported).length} of them exported.`);
     out(`${changed} file(s) read in ${Date.now() - started} ms. The index is kept in ${indexPath(root, env)}`);
-    const told = [digestText(index), testsText(index)].filter(Boolean).join('\n\n');
+    const list = listFormat(env);
+    const told = [list === 'off' ? '' : digestText(index, undefined, list), testsText(index)].filter(Boolean).join('\n\n');
     out(told ? `\n${told}` : '\nNothing in it is shared between files yet, so a session is told nothing.');
     return 0;
   }

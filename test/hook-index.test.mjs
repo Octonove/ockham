@@ -94,6 +94,24 @@ test('at the start a session is told the helpers the project shares, and where i
   assert.match(sharedContext({ cwd: root }, { ...env, OCKHAM_LANG: 'es', OCKHAM_FACTS: 'on' }), /^Ockham: lo que este proyecto ya tiene[\s\S]*las pruebas de este proyecto están en test\//);
 });
 
+test('the list can say only where each helper is and how it is called, or not be given at all', () => {
+  const { root, env } = project();
+  const map = sharedContext({ cwd: root, session_id: 's1' }, { ...env, OCKHAM_FACTS: 'off', OCKHAM_LIST: 'map' });
+  assert.match(map, /^Ockham: what this project already has, so that you do not have to look for it\. These are the helpers its files share, file by file:\n/);
+  assert.match(map, /^- src\/lib\/text\.js: slugify\(text\)$/m);
+  assert.match(map, /^- src\/validation\/email\.js: isEmail\(text\)$/m);
+  assert.doesNotMatch(map, /lowercase|send mail/, 'nothing about what each one does');
+  const full = sharedContext({ cwd: root, session_id: 's1' }, { ...env, OCKHAM_FACTS: 'off', OCKHAM_LIST: 'full' });
+  assert.ok(map.length < full.length);
+  assert.equal(sharedContext({ cwd: root, session_id: 's1' }, { ...env, OCKHAM_FACTS: 'off' }), full, 'full is what nobody asking gets');
+  assert.equal(sharedContext({ cwd: root, session_id: 's1' }, { ...env, OCKHAM_FACTS: 'off', OCKHAM_LIST: 'off' }), '');
+  assert.match(sharedContext({ cwd: root, session_id: 's1' }, { ...env, OCKHAM_LIST: 'off' }), /^Ockham: this project's tests are in test\//, 'without a list, where the tests are is still said');
+  assert.match(sharedContext({ cwd: root }, { ...env, OCKHAM_LANG: 'es', OCKHAM_LIST: 'map' }), /^Ockham: lo que este proyecto ya tiene[^\n]*fichero a fichero:\n- /);
+  // The journal counts helpers, not lines: two helpers in two files, in either form.
+  const said = readJournal(env).filter((event) => event.event === 'shared');
+  assert.deepEqual(said.slice(0, 2).map((event) => [event.list, event.helpers]), [['map', 2], ['full', 2]]);
+});
+
 test('OCKHAM_INDEX=off says nothing at any of the three moments', () => {
   const { root, env } = project();
   const off = { ...env, OCKHAM_INDEX: 'off', OCKHAM_HINTS: 'on', OCKHAM_FACTS: 'on' };
