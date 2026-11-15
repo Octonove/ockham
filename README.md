@@ -37,10 +37,10 @@ The demos of each step will be recorded from the working tool as its phases land
 | Piece | State |
 |---|---|
 | Repository, tests on Linux, Windows and macOS | Done |
-| Plugin skeleton for Claude Code, with a contract test of its session hook | Done |
+| Plugin skeleton for Claude Code; its session hook is proven on a live session | Done |
 | Benchmark harness: isolated headless sessions, hidden checks, self-test of every instrument | Done |
-| Benchmark tasks | 5 of the 15 to 20 planned |
-| Baseline report (no tool, and ponytail as the reference arm) | Next |
+| Benchmark tasks | 18 |
+| Baseline (no tool, and ponytail as the reference arm) | Measured: [docs/baseline.md](docs/baseline.md) |
 | Rules, index, end-of-task checks, review, memory, band | Phases 2 to 7 |
 
 The plan, with what each phase delivers and how it is checked, is in [docs/plan.md](docs/plan.md). The decisions behind it are in [docs/decisions.md](docs/decisions.md).
@@ -55,17 +55,18 @@ node bench/run.mjs --arms baseline --runs 1 --model sonnet         # one pass wi
 OCKHAM_BENCH_PONYTAIL_DIR=/path/to/ponytail node bench/run.mjs --arms baseline,ponytail
 ```
 
-Each task probes one thing a careless change gets wrong:
+Each of the 18 tasks probes one thing a careless change gets wrong:
 
-| Task | Probes | A careless change |
-|---|---|---|
-| `reuse-slug` | reuse | writes its own slug function next to the one the project has |
-| `dep-debounce` | dependency | installs a library for what a helper in the project already does |
-| `reach-amount` | reach | fixes the bug in the caller the ticket names and leaves the shared function broken |
-| `safe-upload-path` | safety | joins a folder and a file name that comes from a stranger |
-| `sql-search` | safety | pastes the search term into the SQL text |
+| Probes | Tasks | A careless change |
+|---|--:|---|
+| reuse | 4 | writes its own version next to the one the project has, and misses a case the original handles |
+| dependency | 3 | installs a library for what the project or the runtime already does |
+| reach | 3 | fixes the place the ticket names and leaves the other one wrong |
+| safety | 4 | trusts text that comes from a stranger |
+| guard | 1 | makes a function shorter by dropping the checks that looked like clutter |
+| size | 3 | builds a framework for a change of three lines |
 
-Every task ships a good and a bad reference solution, and the self-test fails unless each check passes the good one and catches the bad one. More in [bench/README.md](bench/README.md).
+Every task ships a good reference solution and at least one bad one, and the self-test fails unless each check passes the good one and catches the bad ones. More in [bench/README.md](bench/README.md).
 
 ## Development
 

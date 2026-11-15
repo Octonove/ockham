@@ -15,7 +15,20 @@ export function median(values) {
 const share = (part, whole) => (whole ? `${part}/${whole}` : 'n/a');
 
 /**
- * @param {{ stamp: string, model: string, arms: string[], runs: number, results: any[] }} data
+ * For each kind of task, the one measure it exists to take.
+ * @type {Record<string, { counts: string, passed: (score: any) => boolean }>}
+ */
+const PROBES = {
+  reuse: { counts: 'reused what existed', passed: (score) => score.reuse === true },
+  dependency: { counts: 'added no dependency', passed: (score) => score.depsAdded.length === 0 },
+  reach: { counts: 'reached every caller', passed: (score) => score.reach === true },
+  safety: { counts: 'held on hostile input', passed: (score) => score.safe === true },
+  guard: { counts: 'kept every guard', passed: (score) => score.safe === true },
+  size: { counts: 'within the size budget', passed: (score) => score.lean === true },
+};
+
+/**
+ * @param {{ stamp: string, model: string, arms: string[], runs: number, alone?: boolean, results: any[] }} data
  * @returns {string}
  */
 export function report(data) {
@@ -26,6 +39,7 @@ export function report(data) {
     `# Benchmark run ${data.stamp}`,
     '',
     `Model: ${data.model}${resolved.length ? ` (${resolved.join(', ')})` : ''}. Arms: ${data.arms.join(', ')}. ${data.runs} run(s) per task and arm, ${data.results.length} sessions${failed ? `, ${failed} of them failed to run` : ''}.`,
+    data.alone ? 'Each task ran on its own seed, with nothing around it.' : 'Each task ran inside the whole project: its seed, surrounded by the finished code of every other task.',
     'The agent could read and write files but not run commands, so this measures what it writes.',
     '',
     '## Per arm',
@@ -54,6 +68,16 @@ export function report(data) {
       ((median(cells.map((cell) => cell.agent.durationMs)) ?? 0) / 1000).toFixed(0),
       '',
     ].join(' | ').trim());
+  }
+  lines.push('', '## Per kind of task', '', 'The share of sessions that got right the one thing their task probes.', '', `| probes | what counts | ${data.arms.join(' | ')} |`, `|---|---|${data.arms.map(() => '--:').join('|')}|`);
+  for (const kind of [...new Set(data.results.map((cell) => cell.kind))]) {
+    const probe = PROBES[kind];
+    if (!probe) continue;
+    const columns = data.arms.map((arm) => {
+      const cells = done.filter((cell) => cell.kind === kind && cell.arm === arm);
+      return share(cells.filter((cell) => probe.passed(cell.score)).length, cells.length);
+    });
+    lines.push(`| ${kind} | ${probe.counts} | ${columns.join(' | ')} |`);
   }
   lines.push('', '## Per task', '', `| task | probes | ${data.arms.map((arm) => `${arm}: verdict, lines, cost $`).join(' | ')} |`, `|---|---|${data.arms.map(() => '---').join('|')}|`);
   const tasks = [...new Set(data.results.map((cell) => cell.task))];

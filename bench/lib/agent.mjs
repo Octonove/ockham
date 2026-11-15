@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const REPO = fileURLToPath(new URL('../../', import.meta.url));
+export const CELL_TOOLS = ['Read', 'Glob', 'Grep', 'Edit', 'Write'];
 
 /**
  * The Claude Code program. On Windows the npm command is a .cmd shim that cannot be
@@ -71,9 +72,9 @@ export function armEnv(arm, workRoot) {
 
 /**
  * The flags every cell gets. User settings are left out (no user hooks, plugins or
- * MCP servers), and the agent may read and write files but not run commands or
- * reach the network: what is measured is what it writes. A session that runs away
- * stops at `maxUsd`.
+ * MCP servers), and the agent may find, read and write files but not run commands,
+ * reach the network or hand work to another agent: what is measured is what it writes.
+ * A session that runs away stops at `maxUsd`.
  * @param {string} arm
  * @param {string} model
  * @param {number} [maxUsd]
@@ -89,7 +90,11 @@ export function cellArgs(arm, model, maxUsd = 1.5) {
     // No transcript is kept: otherwise every cell leaves a folder in the user's Claude folder.
     '--no-session-persistence',
     '--max-budget-usd', String(maxUsd),
-    '--disallowedTools', 'Bash', 'WebFetch', 'WebSearch',
+    // The tools a cell has, and no others: find, read and write files. A list of what is
+    // allowed, because a list of what is not kept missing things: with no shell to run
+    // the tests in, sessions started subagents to try, which multiplied the cost of a
+    // cell and changed nothing in the code.
+    '--tools', CELL_TOOLS.join(','),
     ...armArgs(arm),
   ];
 }

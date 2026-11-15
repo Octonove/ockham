@@ -4,7 +4,7 @@ Every phase ends with something that can be seen and with a check. The next phas
 
 | Phase | What is done | Counts as done when | State |
 |---|---|---|---|
-| **0. Foundations** | Private repository, structure, tests on three systems, plugin skeleton | A test hook reaches the model in Claude Code and in Codex on the owner's machine | Repository and tests done. The live hook test waits for a Claude Code login in the terminal; Codex has no command-line program on this machine yet |
+| **0. Foundations** | Private repository, structure, tests on three systems, plugin skeleton | A test hook reaches the model in Claude Code and in Codex on the owner's machine | Done for Claude Code: `npm run hook:live` passes on a real session. Codex is open: this machine has its app but no command-line program to run the test with |
 | **1. Benchmark** | 15 to 20 own tasks with hidden checks. Arms: nothing, ponytail (reference), Ockham. The baseline measured | Each check catches a deliberately bad solution, and every session runs isolated from the user's rules and memory | Harness and 5 tasks done. Baseline run pending |
 | **2. Rules** | Main and compact ruleset, English and Spanish. One change at a time against the benchmark. Passed on to subagents | Equals or beats ponytail on code size and tests without losing hidden checks | |
 | **3. "This already exists"** | Project index and a warning before writing | Reuse goes up on the reuse tasks, with almost no false warnings | |
