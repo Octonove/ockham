@@ -56,8 +56,15 @@ function switched(env, name, byDefault) {
  */
 export const hintsOn = (env) => indexOn(env) && switched(env, 'OCKHAM_HINTS', HINTS_BY_DEFAULT);
 
+/**
+ * Whether anything is said while the agent writes. OCKHAM_NOTES=off keeps the index and
+ * says nothing at that moment: what the checks at the end do on their own is measured so.
+ * @param {Record<string, string | undefined>} env
+ */
+const notesOn = (env) => indexOn(env) && switched(env, 'OCKHAM_NOTES', true);
+
 /** @param {Record<string, string | undefined>} env */
-const language = (env) => String(env.OCKHAM_LANG || 'en').trim().toLowerCase().slice(0, 2);
+export const language = (env) => String(env.OCKHAM_LANG || 'en').trim().toLowerCase().slice(0, 2);
 
 /**
  * What the project's "test" script runs, or '' if it has none.
@@ -180,7 +187,7 @@ const COPY_NOTES = 2;
  * @returns {string}
  */
 export function writeContext(input, env) {
-  const root = indexOn(env) ? projectRoot(input, env) : null;
+  const root = notesOn(env) ? projectRoot(input, env) : null;
   const target = input.tool_input?.file_path;
   if (!root || typeof target !== 'string') return '';
   const file = relative(root, isAbsolute(target) ? target : resolve(root, target)).replace(/\\/g, '/');

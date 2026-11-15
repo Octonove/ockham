@@ -10,7 +10,7 @@ const SAY = {
     sharedMap: 'Ockham: what this project already has, so that you do not have to look for it. These are the helpers its files share, file by file:',
     request: 'Ockham: for this request, the project already has:',
     tests: (/** @type {TestFacts} */ facts, /** @type {string} */ script, /** @type {string} */ head) =>
-      `Ockham: this project's tests ${facts.beside ? 'sit beside the code they test' : `are in ${facts.folder}/`} (${facts.count} of them)${facts.runner ? `, written with ${facts.runner}` : ''}${script ? `; \`npm test\` runs \`${script}\`` : ''}. A new test goes with them, in their style.${head ? ` So that you do not have to open one to see that style, this is how ${facts.sample} begins:\n${head}` : ''}`,
+      `Ockham: this project's tests ${facts.beside ? 'sit beside the code they test' : `are in ${facts.folder}/`} (${facts.count} of them)${facts.runner ? `, written with ${facts.runner}` : ''}${script ? `; \`npm test\` runs \`${script}\`` : ''}. If you add a test, it goes with them, in their style.${head ? ` So that you do not have to open one to see that style, this is how ${facts.sample} begins:\n${head}` : ''}`,
     twin: (/** @type {string} */ name, /** @type {string} */ file, /** @type {string} */ twin) =>
       `Ockham: this change defines \`${name}\` in ${file}, and the project already has ${twin}. If it does the same job, import that one and take the new one out.`,
     copies: ['Ockham: what this change replaces is also in', 'If this is a fix, it belongs there too.'],
@@ -20,7 +20,7 @@ const SAY = {
     sharedMap: 'Ockham: lo que este proyecto ya tiene, para que no tengas que buscarlo. Estas son las funciones que comparten sus ficheros, fichero a fichero:',
     request: 'Ockham: para este encargo, el proyecto ya tiene:',
     tests: (/** @type {TestFacts} */ facts, /** @type {string} */ script, /** @type {string} */ head) =>
-      `Ockham: las pruebas de este proyecto ${facts.beside ? 'están junto al código que prueban' : `están en ${facts.folder}/`} (${facts.count})${facts.runner ? `, escritas con ${facts.runner}` : ''}${script ? `; \`npm test\` ejecuta \`${script}\`` : ''}. Una prueba nueva va con ellas, en su estilo.${head ? ` Para que no tengas que abrir una para ver ese estilo, así empieza ${facts.sample}:\n${head}` : ''}`,
+      `Ockham: las pruebas de este proyecto ${facts.beside ? 'están junto al código que prueban' : `están en ${facts.folder}/`} (${facts.count})${facts.runner ? `, escritas con ${facts.runner}` : ''}${script ? `; \`npm test\` ejecuta \`${script}\`` : ''}. Si añades una prueba, va con ellas, en su estilo.${head ? ` Para que no tengas que abrir una para ver ese estilo, así empieza ${facts.sample}:\n${head}` : ''}`,
     twin: (/** @type {string} */ name, /** @type {string} */ file, /** @type {string} */ twin) =>
       `Ockham: este cambio define \`${name}\` en ${file}, y el proyecto ya tiene ${twin}. Si hace el mismo trabajo, importa esa y quita la nueva.`,
     copies: ['Ockham: lo que este cambio sustituye está también en', 'Si es un arreglo, hace falta también allí.'],

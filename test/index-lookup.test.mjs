@@ -185,9 +185,9 @@ test('where the tests are, and what they are written with', () => {
   const { index } = refresh(root, { env });
   assert.deepEqual(testFacts(index), { count: 1, folder: 'test', beside: false, sample: 'test/checkout.test.js', runner: 'node:test' });
   assert.equal(testsText(index, { script: 'node --test test/' }),
-    "Ockham: this project's tests are in test/ (1 of them), written with node:test; `npm test` runs `node --test test/`. A new test goes with them, in their style.");
+    "Ockham: this project's tests are in test/ (1 of them), written with node:test; `npm test` runs `node --test test/`. If you add a test, it goes with them, in their style.");
   assert.equal(testsText(index, { head: (file) => `first lines of ${file}` }),
-    "Ockham: this project's tests are in test/ (1 of them), written with node:test. A new test goes with them, in their style. So that you do not have to open one to see that style, this is how test/checkout.test.js begins:\nfirst lines of test/checkout.test.js");
+    "Ockham: this project's tests are in test/ (1 of them), written with node:test. If you add a test, it goes with them, in their style. So that you do not have to open one to see that style, this is how test/checkout.test.js begins:\nfirst lines of test/checkout.test.js");
   assert.match(testsText(index, { language: 'es' }), /^Ockham: las pruebas de este proyecto están en test\/ \(1\), escritas con node:test\. /);
 
   const beside = project({ 'src/a/a.js': '', 'src/a/a.test.js': "import { it } from 'vitest';", 'src/b/b.test.js': "import { it } from 'vitest';", 'src/c/c.test.js': "import { it } from 'vitest';" });

@@ -54,7 +54,7 @@ export function rulesFor(env, size) {
  * @param {string | undefined} word
  * @param {string} label
  */
-function canaryLine(word, label) {
+export function canaryLine(word, label) {
   const canary = String(word || '').trim();
   return CANARY.test(canary) ? `Ockham contract test. The ${label} is ${canary}.` : '';
 }

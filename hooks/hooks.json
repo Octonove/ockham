@@ -1,5 +1,5 @@
 {
-  "description": "Ockham: gives a session its rules and what the project already has; when it writes, tells it if another file already has what it defines or what it replaces; gives every subagent the compact rules.",
+  "description": "Ockham: gives a session its rules and what the project already has; when it writes, tells it if another file already has what it defines or what it replaces; when it means to finish, looks once at what the task leaves behind; gives every subagent the compact rules.",
   "hooks": {
     "SessionStart": [
       {
@@ -59,6 +59,36 @@
             ],
             "timeout": 10,
             "statusMessage": "Looking up what exists"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/post-shell.mjs"
+            ],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/stop.mjs"
+            ],
+            "timeout": 10,
+            "statusMessage": "Looking at what the task leaves"
           }
         ]
       }
