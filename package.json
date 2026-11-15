@@ -4,7 +4,7 @@
   "private": true,
   "description": "The smallest change that works, checked. Rules, a codebase index and end-of-task checks for coding agents.",
   "type": "module",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "author": "Octonove",
   "engines": {
     "node": ">=20"

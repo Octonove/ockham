@@ -4,7 +4,7 @@
 
 Ockham makes a coding agent write only the code a task needs, reuse what the codebase already has, and check what it wrote before it says "done". For Claude Code and Codex.
 
-> **Status: private, in development. Phases 0 to 3 of 9 are done: the foundations, the benchmark, the rules ([docs/rules.md](docs/rules.md)) and the index ([docs/index.md](docs/index.md)). Phase 4, the checks at the end of a task, is built and measured ([docs/checks.md](docs/checks.md)) and waits for its owner to close it.**
+> **Status: in development. Phases 0 to 3 of 9 are done: the foundations, the benchmark, the rules ([docs/rules.md](docs/rules.md)) and the index ([docs/index.md](docs/index.md)). Phase 4, the checks at the end of a task, is built and measured ([docs/checks.md](docs/checks.md)) and waits for its owner to close it.**
 > Installed as a Claude Code plugin, Ockham today gives a session its rules when it starts, with a list of what the project already has; tells it where the other copy is when it replaces a line that another file has too; looks once at what the task leaves behind when the agent means to finish, and says so if something is missing; and gives every subagent a compact copy of the rules. The rule of the project is that no rule or mechanism ships before a measurement says it helps, so the benchmark came first.
 
 ![One ticket given to a coding agent without Ockham and with it](docs/demo/points.svg)
@@ -196,3 +196,7 @@ npm run typecheck   # the JavaScript is type-checked, not compiled
 ## Credit
 
 The idea of a ruleset that makes an agent write less was made popular by [ponytail](https://github.com/DietrichGebert/ponytail) (MIT). Ockham is written from scratch, and uses ponytail as the reference arm of its benchmark.
+
+## License
+
+[MIT](LICENSE)
