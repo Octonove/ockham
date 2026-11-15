@@ -1,15 +1,20 @@
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 
 import { hushStatusLineNote, restoreTraces, snapshotTraces } from '../bench/lib/traces.mjs';
 
-const folder = () => mkdtempSync(join(tmpdir(), 'ockham-traces-'));
+/** A stand-in for the user's Claude folder, gone again when the test ends. */
+function folder(t) {
+  const dir = mkdtempSync(join(tmpdir(), 'ockham-traces-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  return dir;
+}
 
-test('a folder that had nothing of the reference arm has nothing again', () => {
-  const dir = folder();
+test('a folder that had nothing of the reference arm has nothing again', (t) => {
+  const dir = folder(t);
   writeFileSync(join(dir, 'settings.json'), '{}');
   const before = snapshotTraces(dir);
   hushStatusLineNote(before);
@@ -22,8 +27,8 @@ test('a folder that had nothing of the reference arm has nothing again', () => {
   assert.deepEqual(readdirSync(dir), ['settings.json']);
 });
 
-test('what the user already had is put back as it was', () => {
-  const dir = folder();
+test('what the user already had is put back as it was', (t) => {
+  const dir = folder(t);
   writeFileSync(join(dir, '.ponytail-active'), 'lite');
   writeFileSync(join(dir, '.ponytail-statusline-nudged'), 'C:/old/path');
   mkdirSync(join(dir, 'ponytail-modes'));
@@ -38,8 +43,8 @@ test('what the user already had is put back as it was', () => {
   assert.deepEqual(readdirSync(join(dir, 'ponytail-modes')), ['theirs']);
 });
 
-test('a run that left nothing changes nothing', () => {
-  const dir = folder();
+test('a run that left nothing changes nothing', (t) => {
+  const dir = folder(t);
   const before = snapshotTraces(dir);
   assert.deepEqual(restoreTraces(before), []);
   assert.equal(existsSync(join(dir, 'ponytail-modes')), false);

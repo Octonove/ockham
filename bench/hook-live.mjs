@@ -5,7 +5,7 @@
 //
 //   node bench/hook-live.mjs [--model haiku]
 import { randomBytes } from 'node:crypto';
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -27,6 +27,7 @@ let failed = 0;
 for (const item of cases) {
   const cwd = mkdtempSync(join(tmpdir(), 'ockham-hook-live-'));
   const result = await runClaude({ prompt, cwd, arm: item.arm, model, timeoutMs: 180_000, env: { ...cellEnv(), OCKHAM_CANARY: canary } });
+  rmSync(cwd, { recursive: true, force: true, maxRetries: 3 });
   const ok = result.ok && item.expect(result.reply);
   if (!ok) failed++;
   const said = result.ok ? result.reply.trim().slice(0, 80) : result.error;

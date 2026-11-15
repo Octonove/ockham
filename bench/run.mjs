@@ -6,7 +6,7 @@
 //   node bench/run.mjs --arms baseline,ponytail --runs 1 --model sonnet [--tasks a,b] [--workers 3] [--max-usd 1.5] [--alone]
 //   node bench/run.mjs --rescore bench/runs/<stamp>
 //   node bench/run.mjs --combine bench/runs/<stamp>,bench/runs/<stamp> [--out file.md]
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -57,24 +57,29 @@ async function selftest() {
   const all = loadTasks();
   const root = mkdtempSync(join(tmpdir(), 'ockham-selftest-'));
   let failed = 0;
-  for (const alone of [false, true]) {
-    const where = alone ? 'alone' : 'project';
-    console.log(alone ? '\nEach seed on its own' : 'Each task inside the whole project');
-    for (const task of all) {
-      const seed = seedFor(task, all, join(root, where), alone);
-      // The good reference must pass everything; every other one must fail the field it stands for.
-      const mustFail = { bad: task.badFails, ...task.refs };
-      for (const ref of ['good', ...Object.keys(mustFail)]) {
-        const work = join(root, where, `${task.id}__${ref}`);
-        copyTree(seed, work);
-        copyTree(join(task.dir, 'refs', ref), work);
-        const score = await scoreWorkspace(task, seed, work);
-        const ok = ref === 'good' ? passesAll(score) : fails(score, mustFail[ref]);
-        if (!ok) failed++;
-        const expected = ref === 'good' ? 'passes everything' : `fails "${mustFail[ref]}"`;
-        console.log(`${ok ? 'ok  ' : 'FAIL'} ${task.id} / ${ref} reference ${expected}${ok ? '' : `  -> ${JSON.stringify(score)}`}`);
+  try {
+    for (const alone of [false, true]) {
+      const where = alone ? 'alone' : 'project';
+      console.log(alone ? '\nEach seed on its own' : 'Each task inside the whole project');
+      for (const task of all) {
+        const seed = seedFor(task, all, join(root, where), alone);
+        // The good reference must pass everything; every other one must fail the field it stands for.
+        const mustFail = { bad: task.badFails, ...task.refs };
+        for (const ref of ['good', ...Object.keys(mustFail)]) {
+          const work = join(root, where, `${task.id}__${ref}`);
+          copyTree(seed, work);
+          copyTree(join(task.dir, 'refs', ref), work);
+          const score = await scoreWorkspace(task, seed, work);
+          const ok = ref === 'good' ? passesAll(score) : fails(score, mustFail[ref]);
+          if (!ok) failed++;
+          const expected = ref === 'good' ? 'passes everything' : `fails "${mustFail[ref]}"`;
+          console.log(`${ok ? 'ok  ' : 'FAIL'} ${task.id} / ${ref} reference ${expected}${ok ? '' : `  -> ${JSON.stringify(score)}`}`);
+        }
       }
     }
+  } finally {
+    // Unlike a run's workspaces, these are of no use afterwards.
+    rmSync(root, { recursive: true, force: true, maxRetries: 3 });
   }
   console.log(failed ? `\n${failed} instrument(s) cannot be trusted.` : '\nEvery instrument tells its good reference from its bad ones.');
   return failed ? 1 : 0;
