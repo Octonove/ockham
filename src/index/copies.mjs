@@ -65,13 +65,13 @@ export function linesTakenAway(before, after) {
 }
 
 /**
- * The longest list of tokens that two lines have in the same order, with anything in
- * between: "points > reward.cost" is in "customer.points > reward.cost" whole.
+ * Where two lines have the longest list of tokens in the same order, with anything in
+ * between: each pair is a position in `a` and the position in `b` that matches it.
  * @param {string[]} a
  * @param {string[]} b
- * @returns {string[]}
+ * @returns {[number, number][]}
  */
-export function inCommon(a, b) {
+function alignment(a, b) {
   const rows = a.length + 1;
   const columns = b.length + 1;
   const table = new Uint16Array(rows * columns);
@@ -82,10 +82,11 @@ export function inCommon(a, b) {
         : Math.max(table[(i - 1) * columns + j], table[i * columns + j - 1]);
     }
   }
+  /** @type {[number, number][]} */
   const out = [];
   for (let i = a.length, j = b.length; i > 0 && j > 0;) {
     if (a[i - 1] === b[j - 1]) {
-      out.push(a[i - 1]);
+      out.push([i - 1, j - 1]);
       i--;
       j--;
     } else if (table[(i - 1) * columns + j] >= table[i * columns + j - 1]) {
@@ -95,6 +96,48 @@ export function inCommon(a, b) {
     }
   }
   return out.reverse();
+}
+
+/**
+ * The longest list of tokens that two lines have in the same order, with anything in
+ * between: "points > reward.cost" is in "customer.points > reward.cost" whole.
+ * @param {string[]} a
+ * @param {string[]} b
+ * @returns {string[]}
+ */
+export function inCommon(a, b) {
+  return alignment(a, b).map(([i]) => a[i]);
+}
+
+// What stands for a name a line gives to its own things when the shapes of two lines are compared.
+const OWN = '\u0001';
+
+/**
+ * A line's shape: its tokens with the names it gives to its own things blanked. Kept as
+ * they are: the words of the language and of its library, what follows a dot, numbers,
+ * texts, and the names the project defines, its functions and constants.
+ * @param {string[]} line
+ * @param {Set<string>} defined
+ */
+export function shapeOf(line, defined) {
+  return line.map((token, at) => (/^[A-Za-z_$]/.test(token) && !PLAIN.has(token) && line[at - 1] !== '.' && !defined.has(token) ? OWN : token));
+}
+
+/** Whether a token of a shape says what the line is about, whatever its own names are. @param {string} token */
+const anchors = (token) => token !== OWN && (/^\d[\d_.]+$/.test(token) || (/^[A-Za-z_$]/.test(token) && token.length >= 3 && !PLAIN.has(token)));
+
+// How much of a line's shape a copy with other names must have.
+const SAME_SHAPE = 0.85;
+
+/**
+ * The names the project's own files define: in a line they say what it is about.
+ * @param {import('./store.mjs').Index} index
+ */
+function definedIn(index) {
+  /** @type {Set<string>} */
+  const names = new Set();
+  for (const entry of Object.values(index.files)) for (const symbol of entry.symbols) names.add(symbol.name);
+  return names;
 }
 
 /**
@@ -129,6 +172,10 @@ function lostBy(mine, arriving) {
  * but one at the most, and something the change removes: the part that was wrong.
  * A change that only adds to a line, a new argument or a call wrapped round it, takes
  * nothing out, and is not a fix that other lines are waiting for.
+ *
+ * A line with other names for its own things is such a place too, when nothing with the
+ * same names was found: the same shape, nearly all of it, with the words of the library
+ * and of the project that the line is anchored by, and the part the change took out.
  * @param {import('./store.mjs').Index} index
  * @param {string} root
  * @param {string} file     the file being changed, from the root
@@ -142,35 +189,60 @@ export function copiesOf(index, root, file, before, after, { limit = 2, read = (
   const fixed = new Set(String(after).split(/\r?\n/).map((line) => tokens(line).join(' ')));
   // The lines the change brings in: those of its new text that the old one did not have.
   const arriving = String(after).split(/\r?\n/).map(tokens).filter((line) => line.length && !was.has(line.join(' ')));
+  // The names the change brings in. When one of them is what another file exports, the change
+  // makes this file use that one, and the lines it takes out are in that file because that is
+  // where they now live: it is not a copy waiting for the same fix.
+  const had = new Set(tokens(before));
+  const brought = new Set(arriving.flat().filter((token) => /^[A-Za-z_$]/.test(token) && !PLAIN.has(token) && !had.has(token)));
+  /** @param {string} other */
+  const nowUses = (other) => brought.size > 0 && (index.files[other]?.symbols ?? []).some((symbol) => symbol.exported && brought.has(symbol.name));
   /** @type {{ file: string, line: number, text: string, shared: number }[]} */
   const found = [];
   /** @type {Map<string, string[]>} */
   const sources = new Map();
+  /** @param {string} other */
+  const linesOf = (other) => {
+    if (!sources.has(other)) {
+      try {
+        sources.set(other, read(join(root, other)).split(/\r?\n/));
+      } catch {
+        sources.set(other, []);
+      }
+    }
+    return /** @type {string[]} */ (sources.get(other));
+  };
+  /** @type {Set<string> | null} */
+  let defined = null;
   for (const taken of linesTakenAway(before, after).slice(0, 6)) {
     const mine = tokens(taken);
     const names = [...new Set(mine.filter(tells))];
-    if (mine.length < 6 || names.length < 2) continue;
     const gone = lostBy(mine, arriving);
     if (!gone.size) continue;
+    const had = found.length;
+    if (mine.length >= 6 && names.length >= 2) sameNames(mine, names, gone);
+    // Nothing with the same names: the same line may be there with other names for its own things.
+    if (found.length === had) sameShape(mine, gone, (defined ??= definedIn(index)));
+  }
+
+  /**
+   * Copies that use the line's own names.
+   * @param {string[]} mine
+   * @param {string[]} names
+   * @param {Set<string>} gone
+   */
+  function sameNames(mine, names, gone) {
     const enoughTokens = Math.max(6, Math.ceil(mine.length * 0.6));
     const enoughNames = Math.max(2, names.length - 1);
 
     // Only the files that use enough of the line's names can hold a copy of it.
     const candidates = Object.entries(index.files)
-      .filter(([other, entry]) => other !== file && !entry.test)
+      .filter(([other, entry]) => other !== file && !entry.test && !nowUses(other))
       .map(([other, entry]) => ({ other, shared: names.filter((name) => /^\d/.test(name) || (entry.names ?? []).includes(name)).length }))
       .filter((candidate) => candidate.shared >= enoughNames)
       .sort((a, b) => b.shared - a.shared || a.other.localeCompare(b.other))
       .slice(0, 25);
     for (const { other } of candidates) {
-      if (!sources.has(other)) {
-        try {
-          sources.set(other, read(join(root, other)).split(/\r?\n/));
-        } catch {
-          sources.set(other, []);
-        }
-      }
-      /** @type {string[]} */ (sources.get(other)).forEach((text, at) => {
+      linesOf(other).forEach((text, at) => {
         if (!isCode(text)) return;
         const theirs = tokens(text);
         if (theirs.length < 6 || fixed.has(theirs.join(' '))) return;
@@ -184,6 +256,47 @@ export function copiesOf(index, root, file, before, after, { limit = 2, read = (
       });
     }
   }
+
+  /**
+   * Copies with other names for the line's own things: the same shape, most of it, with
+   * at least two of its anchors (a word of the library or of the project, or a number) and
+   * something the change took out. Only files that use every word the line is anchored by
+   * are read.
+   * @param {string[]} mine
+   * @param {Set<string>} gone
+   * @param {Set<string>} known
+   */
+  function sameShape(mine, gone, known) {
+    const shape = shapeOf(mine, known);
+    const held = [...new Set(shape.filter(anchors))];
+    const words = held.filter((token) => /^[A-Za-z_$]/.test(token));
+    if (shape.length < 8 || !shape.includes(OWN) || held.length < 2 || !words.length) return;
+    if (!shape.some((token) => token !== OWN && gone.has(token))) return;
+    const candidates = Object.entries(index.files)
+      .filter(([other, entry]) => other !== file && !entry.test && !nowUses(other) && words.every((word) => (entry.names ?? []).includes(word)))
+      .map(([other]) => other)
+      .sort()
+      .slice(0, 25);
+    for (const other of candidates) {
+      linesOf(other).forEach((text, at) => {
+        if (!isCode(text)) return;
+        const theirs = tokens(text);
+        if (theirs.length < 8 || fixed.has(theirs.join(' '))) return;
+        const theirShape = shapeOf(theirs, known);
+        // Nearly all of the shorter of the two, and neither much longer than the other: a
+        // line is not a copy of a piece of a longer one. Measured on the shorter, a copy is
+        // found from either end.
+        const shorter = Math.min(shape.length, theirShape.length);
+        if (Math.max(shape.length, theirShape.length) > shorter * 1.5) return;
+        const pairs = alignment(shape, theirShape);
+        if (pairs.length < Math.ceil(shorter * SAME_SHAPE)) return;
+        const common = pairs.map(([i]) => shape[i]);
+        if (new Set(common.filter(anchors)).size < 2 || !common.some((token) => token !== OWN && gone.has(token))) return;
+        found.push({ file: other, line: at + 1, text: text.trim().slice(0, 160), shared: pairs.length });
+      });
+    }
+  }
+
   found.sort((a, b) => b.shared - a.shared || a.file.localeCompare(b.file) || a.line - b.line);
   /** @type {Set<string>} */
   const seen = new Set();

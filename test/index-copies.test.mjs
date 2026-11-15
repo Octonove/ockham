@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { after, test } from 'node:test';
 
-import { copiesOf, inCommon, linesTakenAway, namesIn, tokens } from '../src/index/copies.mjs';
+import { copiesOf, inCommon, linesTakenAway, namesIn, shapeOf, tokens } from '../src/index/copies.mjs';
 import { copiesText } from '../src/index/say.mjs';
 import { refresh } from '../src/index/store.mjs';
 import { readJournal } from '../src/journal.mjs';
@@ -91,6 +91,56 @@ test('lines that only look alike are not copies', () => {
   // the copied lines are still there, and what the change does is add another
   assert.deepEqual(copiesOf(index, root, 'src/checkout/total.js', '  const net = items.reduce((sum, item) => sum + item.price * item.quantity, 0);\n  return Math.floor(net * (1 + VAT) * 100) / 100;',
     '  const net = items.reduce((sum, item) => sum + item.price * item.quantity, 0);\n  const gross = net;\n  return Math.floor(net * (1 + VAT) * 100) / 100;'), []);
+});
+
+const PRICES = {
+  'src/promo/price.js': 'export function promoPrice(cents, percent) {\n  return cents - Math.floor(cents * percent / 100);\n}\n',
+  'src/quotes/line.js': 'export function quoteLine(unitCents, quantity, agreedPercent) {\n  const unit = unitCents - Math.floor(unitCents * agreedPercent / 100);\n  return { unit, total: unit * quantity };\n}\n',
+  // The same words in another sum, and the same sum already put right: neither is a copy.
+  'src/stats/share.js': 'export function share(part, whole) {\n  return Math.floor(part / whole * 100);\n}\n',
+  'src/refunds/amount.js': 'export function refundAmount(paid, rate) {\n  return paid - Math.round(paid * rate / 100);\n}\n',
+};
+
+test("a line's shape is its tokens with the names it gives to its own things blanked", () => {
+  const own = shapeOf(tokens('x'), new Set())[0];
+  assert.deepEqual(shapeOf(tokens('return cents - Math.floor(cents * percent / 100);'), new Set()),
+    ['return', own, '-', 'Math', '.', 'floor', '(', own, '*', own, '/', '100', ')', ';']);
+  // What follows a dot, and what the project defines, say what the line is about and stay.
+  assert.deepEqual(shapeOf(tokens('total = formatMoney(order.total)'), new Set(['formatMoney'])), [own, '=', 'formatMoney', '(', own, '.', 'total', ')']);
+});
+
+test('a copy with other names for its own things is found by its shape', () => {
+  const { root, index } = project(PRICES);
+  const places = copiesOf(index, root, 'src/promo/price.js', '  return cents - Math.floor(cents * percent / 100);', '  return cents - Math.round(cents * percent / 100);');
+  assert.deepEqual(places.map((place) => `${place.file}:${place.line}`), ['src/quotes/line.js:2']);
+  // And the other way round, from the copy to the first.
+  const back = copiesOf(index, root, 'src/quotes/line.js', '  const unit = unitCents - Math.floor(unitCents * agreedPercent / 100);', '  const unit = unitCents - Math.round(unitCents * agreedPercent / 100);');
+  assert.deepEqual(back.map((place) => `${place.file}:${place.line}`), ['src/promo/price.js:2']);
+});
+
+test('a shape that is anchored by nothing, or that lost nothing, points nowhere', () => {
+  const { root, index } = project(SHOP);
+  // The two list files have line after line of the same shape, and not a word in them that says what they are about.
+  assert.deepEqual(copiesOf(index, root, 'src/orders/list.js', '    if (!order.id) return null;', '    if (order.id === undefined) return null;'), []);
+  assert.deepEqual(copiesOf(index, root, 'src/orders/list.js', '  return orders.map((order) => order.id);', '  return orders.map((order) => String(order.id));'), []);
+  const prices = project(PRICES);
+  // Only a name changed: the line lost nothing that another line has.
+  assert.deepEqual(copiesOf(prices.index, prices.root, 'src/promo/price.js', '  return cents - Math.floor(cents * percent / 100);', '  return amount - Math.floor(amount * percent / 100);'), []);
+});
+
+const AGES = {
+  'src/signup/age.js': 'export function oldEnough(birth, today) {\n  const years = today.getFullYear() - birth.getFullYear();\n  const hadBirthday = today.getMonth() > birth.getMonth();\n  return (hadBirthday ? years : years - 1) >= 18;\n}\n',
+  'src/delivery/handover.js': "export function handoverNote(parcel, birth, today) {\n  const years = today.getFullYear() - birth.getFullYear();\n  const hadBirthday = today.getMonth() > birth.getMonth();\n  const adult = (hadBirthday ? years : years - 1) > 18;\n  return adult ? 'yes' : 'no';\n}\n",
+};
+
+test('a change that makes its file call another one is not pointed back at that one', () => {
+  const { root, index } = project(AGES);
+  const copied = '  const years = today.getFullYear() - birth.getFullYear();\n  const hadBirthday = today.getMonth() > birth.getMonth();\n  const adult = (hadBirthday ? years : years - 1) > 18;';
+  // The copy is taken out and the first file's function called: its lines are where they belong.
+  assert.deepEqual(copiesOf(index, root, 'src/delivery/handover.js', copied, '  const adult = oldEnough(birth, today);'), []);
+  // The same lines rewritten without calling anybody are still a change to something that is in two files.
+  const rewritten = copiesOf(index, root, 'src/delivery/handover.js', copied, '  const adult = ageOn(today, birth) >= 18;');
+  assert.deepEqual(rewritten.map((place) => place.file), ['src/signup/age.js', 'src/signup/age.js']);
 });
 
 test('tests and comments are never given as the other place', () => {
