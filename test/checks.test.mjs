@@ -230,6 +230,8 @@ test('tests not run are asked for only where there is a shell, and a claim only 
   assert.deepEqual(names(after_(change, { env, reply: 'Done. All tests pass.', tested: true })), []);
   // Told to run them, the agent is not also told that it said they pass.
   assert.deepEqual(names(after_(change, { env, shell: true, reply: 'Done. All tests pass.' })), ['run']);
+  // A comment and nothing else gives the tests nothing to say.
+  assert.deepEqual(names(after_({ 'src/chat/sidebar.js': `// One entry of the chat list.\n${FILES['src/chat/sidebar.js']}` }, { env, shell: true, reply: 'All tests pass.' })), []);
   // Nothing was written: nothing to run them for.
   assert.deepEqual(names(after_({}, { env, shell: true, reply: 'All tests pass.' })), []);
 });

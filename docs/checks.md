@@ -13,7 +13,7 @@ When the agent means to stop, the files the task changed are compared with what 
 | `copy` | what the task replaced in one file is still in another | the same, with the finder of [index.md](index.md) | on |
 | `guard` | the files the task wrote make fewer checks than they made: a limit, a `throw`, a look at a type, a call that validates or cleans | the files the task wrote, before and now | on |
 | `test` | a fix, or a change that touches money, parsing, validation or security, with no test added or changed | the request, the lines that changed, and whether the project has tests | on; `OCKHAM_TESTS=off` takes it out |
-| `run` | source was written after the last time the tests ran, in a session that has run a command | the commands the session ran | on |
+| `run` | code was changed after the last time the tests ran, in a session that has run a command; a comment alone does not count | the commands the session ran | on |
 | `claim` | the agent's summary says the tests pass, and none ran after the last change | the last message | on |
 
 `OCKHAM_CHECKS=off` switches all of it off, and a list such as `OCKHAM_CHECKS=deps,copy` keeps those. `OCKHAM_INDEX=off` leaves only what needs no index: `deps`, `guard` and `claim`.

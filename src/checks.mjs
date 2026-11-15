@@ -385,6 +385,8 @@ export function claimsTests(reply) {
  */
 export function findings(index, left, env = process.env) {
   const changed = changedSource(left);
+  // Whether any line of code changed: a new comment gives the tests nothing to say.
+  const code = changed.some(({ before, after }) => linesTakenAway(before ?? '', after).length > 0 || linesTakenAway(after, before ?? '').length > 0);
   /** @type {Record<string, () => Finding[]>} */
   const look = {
     deps: () => newDependencies(left),
@@ -392,8 +394,8 @@ export function findings(index, left, env = process.env) {
     copy: () => copiesLeft(index, left, changed),
     guard: () => checksLost(changed).slice(0, 2).map(({ file, lines }) => ({ check: 'guard', file, lines })),
     test: () => untested(index, left, changed),
-    run: () => (left.shell && !left.tested && changed.length && testFacts(index) ? [{ check: 'run' }] : []),
-    claim: () => (!left.tested && changed.length && claimsTests(left.reply ?? '') ? [{ check: 'claim' }] : []),
+    run: () => (left.shell && !left.tested && code && testFacts(index) ? [{ check: 'run' }] : []),
+    claim: () => (!left.tested && code && claimsTests(left.reply ?? '') ? [{ check: 'claim' }] : []),
   };
   const found = checksOn(env).flatMap((name) => {
     try {
