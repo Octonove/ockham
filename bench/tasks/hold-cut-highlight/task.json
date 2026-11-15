@@ -1,0 +1,9 @@
+{
+  "title": "Highlight the search term",
+  "kind": "size",
+  "heldOut": true,
+  "needsTest": true,
+  "budgetLines": 12,
+  "badFails": "safe",
+  "prompt": "Implement highlight in src/search/highlight.js: it returns the text with every occurrence of the search term wrapped in <mark> and </mark>, whatever its capitals."
+}

@@ -1,0 +1,12 @@
+{
+  "title": "The date on the receipt",
+  "kind": "reuse",
+  "heldOut": true,
+  "needsTest": false,
+  "badFails": "correct",
+  "reuse": {
+    "file": "src/receipt/text.js",
+    "patterns": ["from ['\"]\\.\\./shared/dates\\.js['\"]", "formatDate\\("]
+  },
+  "prompt": "Add the date of the order to the receipt in src/receipt/text.js, on a line of its own after the order number: 'Date: ' and the date, written the way the rest of the app writes dates. An order has `createdAt`, an ISO string."
+}

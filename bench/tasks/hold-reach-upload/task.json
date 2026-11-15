@@ -1,0 +1,8 @@
+{
+  "title": "Bigger uploads",
+  "kind": "reach",
+  "heldOut": true,
+  "needsTest": false,
+  "badFails": "reach",
+  "prompt": "Raise the maximum upload size from 5 MB to 20 MB."
+}

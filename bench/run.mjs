@@ -3,9 +3,10 @@
 // project a task starts from; what it leaves behind is scored by a check it never saw.
 //
 //   node bench/run.mjs --selftest
-//   node bench/run.mjs --arms baseline,ponytail --runs 1 --model sonnet [--tasks a,b] [--workers 3] [--max-usd 1.5] [--alone]
+//   node bench/run.mjs --arms baseline,ponytail --runs 1 --model sonnet [--tasks a,b | --held-out | --all] [--workers 3] [--max-usd 1.5] [--alone]
 //   node bench/run.mjs --rescore bench/runs/<stamp>
 //   node bench/run.mjs --combine bench/runs/<stamp>,bench/runs/<stamp> [--out file.md]
+import { createHash } from 'node:crypto';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -18,6 +19,7 @@ import { fails, passesAll, scoreWorkspace } from './lib/score.mjs';
 import { loadTasks } from './lib/tasks.mjs';
 import { hushStatusLineNote, restoreTraces, snapshotTraces } from './lib/traces.mjs';
 import { copyTree } from './lib/workspace.mjs';
+import { rules } from '../src/session.mjs';
 
 const RUNS_DIR = fileURLToPath(new URL('./runs/', import.meta.url));
 
@@ -46,7 +48,11 @@ const list = (value) => (typeof value === 'string' ? value.split(',').map((item)
  * @param {boolean} alone
  */
 function seedFor(task, all, root, alone) {
-  return alone ? join(task.dir, 'seed') : composeSeed(task, all, join(root, '_seeds', task.id));
+  if (alone) return join(task.dir, 'seed');
+  // The project of a tuning task is made of tuning tasks only, so its baseline stays valid when
+  // held-out tasks are added. A held-out task lives in the project with everything in it.
+  const around = task.heldOut ? all : all.filter((other) => !other.heldOut);
+  return composeSeed(task, around, join(root, '_seeds', task.id));
 }
 
 /**
@@ -101,7 +107,9 @@ async function pool(items, workers, fn) {
 /** @param {Record<string, string | boolean>} args */
 async function run(args) {
   const all = loadTasks();
-  const tasks = loadTasks(list(args.tasks));
+  // Rules are tuned on the tuning tasks and proved on the held-out ones, which nobody looks at while tuning.
+  const named = list(args.tasks);
+  const tasks = named.length ? loadTasks(named) : all.filter((task) => (args.all ? true : Boolean(task.heldOut) === Boolean(args['held-out'])));
   const arms = list(args.arms).length ? list(args.arms) : ['baseline'];
   const runs = Number(args.runs || 1);
   const model = String(args.model || 'sonnet');
@@ -112,6 +120,9 @@ async function run(args) {
   const outDir = join(RUNS_DIR, stamp);
   mkdirSync(outDir, { recursive: true });
   const seeds = new Map(tasks.map((task) => [task.id, seedFor(task, all, workRoot, alone)]));
+  // Which ruleset the ockham arm ran with: two runs compare only if it is the same text.
+  const rulesText = arms.includes('ockham') ? rules('en') : '';
+  const ruleset = rulesText ? { hash: createHash('sha256').update(rulesText).digest('hex').slice(0, 10), words: rulesText.split(/\s+/).length } : null;
 
   /** @type {{ task: import('./lib/tasks.mjs').Task, arm: string, n: number }[]} */
   const cells = [];
@@ -132,7 +143,7 @@ async function run(args) {
       const score = agent.ok ? await scoreWorkspace(task, seed, work) : null;
       results.push({ task: task.id, kind: task.kind, needsTest: task.needsTest, arm, n, seed, work, agent, score });
       // Saved after every cell: a run that is cut short keeps the sessions it paid for.
-      writeFileSync(join(outDir, 'cells.json'), JSON.stringify({ stamp, model, arms, runs, alone, workRoot, unfinished: true, results }, null, 2));
+      writeFileSync(join(outDir, 'cells.json'), JSON.stringify({ stamp, model, arms, runs, alone, ruleset, workRoot, unfinished: true, results }, null, 2));
       const verdict = score ? `${score.correct ? 'correct' : 'WRONG'}${score.safe ? '' : ' (broke on input the ticket left out)'}` : `agent failed: ${agent.error}`;
       console.log(`${task.id} / ${arm} #${n}: ${verdict}`);
     });
@@ -144,7 +155,7 @@ async function run(args) {
   // Cells finish in any order; the files keep the order they were planned in.
   const order = new Map(cells.map((cell, index) => [`${cell.task.id}|${cell.arm}|${cell.n}`, index]));
   results.sort((a, b) => (order.get(`${a.task}|${a.arm}|${a.n}`) ?? 0) - (order.get(`${b.task}|${b.arm}|${b.n}`) ?? 0));
-  const data = { stamp, model, arms, runs, alone, workRoot, results };
+  const data = { stamp, model, arms, runs, alone, ruleset, workRoot, results };
   writeFileSync(join(outDir, 'cells.json'), JSON.stringify(data, null, 2));
   const text = report(data);
   writeFileSync(join(outDir, 'report.md'), text);

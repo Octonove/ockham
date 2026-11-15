@@ -1,0 +1,9 @@
+{
+  "title": "A search filter in the catalogue address",
+  "kind": "size",
+  "heldOut": true,
+  "needsTest": false,
+  "budgetLines": 6,
+  "badFails": "safe",
+  "prompt": "Add a search filter to catalogUrl in src/catalog/url.js: filters.q is what the customer typed in the search box, and it goes in the address as q."
+}
