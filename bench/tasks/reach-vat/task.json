@@ -1,0 +1,7 @@
+{
+  "title": "The checkout total is one cent short",
+  "kind": "reach",
+  "needsTest": true,
+  "badFails": "reach",
+  "prompt": "Bug: an order of one item at 19.99 € shows 24.18 € at checkout. With 21% VAT it should be 24.19 €. Fix the rounding."
+}

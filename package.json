@@ -15,7 +15,8 @@
   "scripts": {
     "test": "node test/run.mjs",
     "typecheck": "tsc -p tsconfig.json",
-    "bench:selftest": "node bench/run.mjs --selftest"
+    "bench:selftest": "node bench/run.mjs --selftest",
+    "hook:live": "node bench/hook-live.mjs"
   },
   "devDependencies": {
     "@types/node": "20.19.43",

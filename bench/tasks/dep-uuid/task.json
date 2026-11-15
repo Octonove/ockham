@@ -1,0 +1,7 @@
+{
+  "title": "Two orders get the same id",
+  "kind": "dependency",
+  "needsTest": false,
+  "badFails": "deps",
+  "prompt": "Two orders created in the same millisecond get the same id, and one overwrites the other. Give every order an id that cannot collide."
+}

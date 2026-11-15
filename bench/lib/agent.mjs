@@ -58,13 +58,27 @@ export function cellEnv(env = process.env) {
 }
 
 /**
+ * What an arm adds to a cell's environment. The reference arm keeps its settings and
+ * a ledger of tasks under the user's config folder; XDG_CONFIG_HOME sends them to the
+ * run's own folder instead. Claude Code itself does not read that variable.
+ * @param {string} arm
+ * @param {string} workRoot
+ * @returns {Record<string, string>}
+ */
+export function armEnv(arm, workRoot) {
+  return arm === 'ponytail' ? { XDG_CONFIG_HOME: join(workRoot, 'xdg') } : {};
+}
+
+/**
  * The flags every cell gets. User settings are left out (no user hooks, plugins or
  * MCP servers), and the agent may read and write files but not run commands or
- * reach the network: what is measured is what it writes.
+ * reach the network: what is measured is what it writes. A session that runs away
+ * stops at `maxUsd`.
  * @param {string} arm
  * @param {string} model
+ * @param {number} [maxUsd]
  */
-export function cellArgs(arm, model) {
+export function cellArgs(arm, model, maxUsd = 1.5) {
   return [
     '-p',
     '--output-format', 'json',
@@ -72,18 +86,21 @@ export function cellArgs(arm, model) {
     '--permission-mode', 'bypassPermissions',
     '--setting-sources', 'project,local',
     '--strict-mcp-config',
+    // No transcript is kept: otherwise every cell leaves a folder in the user's Claude folder.
+    '--no-session-persistence',
+    '--max-budget-usd', String(maxUsd),
     '--disallowedTools', 'Bash', 'WebFetch', 'WebSearch',
     ...armArgs(arm),
   ];
 }
 
 /**
- * @param {{ prompt: string, cwd: string, arm: string, model: string, timeoutMs?: number, env?: Record<string, string> }} cell
+ * @param {{ prompt: string, cwd: string, arm: string, model: string, timeoutMs?: number, maxUsd?: number, env?: Record<string, string> }} cell
  */
-export function runClaude({ prompt, cwd, arm, model, timeoutMs = 600_000, env = cellEnv() }) {
+export function runClaude({ prompt, cwd, arm, model, timeoutMs = 600_000, maxUsd, env = cellEnv() }) {
   return new Promise((resolve) => {
     const started = Date.now();
-    const child = spawn(findClaude(), cellArgs(arm, model), { cwd, env, stdio: ['pipe', 'pipe', 'pipe'] });
+    const child = spawn(findClaude(), cellArgs(arm, model, maxUsd), { cwd, env, stdio: ['pipe', 'pipe', 'pipe'] });
     let stdout = '';
     let stderr = '';
     child.stdout.on('data', (chunk) => { stdout += chunk; });
@@ -116,6 +133,8 @@ export function parseResult(stdout, stderr, code, wallMs) {
       ok: json.is_error === false,
       error: json.is_error ? String(json.result).slice(0, 300) : undefined,
       reply: String(json.result ?? ''),
+      // An alias such as "sonnet" means whatever this Claude Code resolves it to.
+      models: Object.keys(json.modelUsage ?? {}),
       costUsd: Number(json.total_cost_usd ?? 0),
       turns: Number(json.num_turns ?? 0),
       durationMs: Number(json.duration_ms ?? wallMs),

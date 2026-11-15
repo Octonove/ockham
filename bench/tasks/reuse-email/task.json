@@ -1,0 +1,11 @@
+{
+  "title": "Newsletter signup",
+  "kind": "reuse",
+  "needsTest": true,
+  "badFails": "safe",
+  "reuse": {
+    "file": "src/newsletter/subscribe.js",
+    "patterns": ["from ['\"]\\.\\./validation/email\\.js['\"]", "isEmail\\("]
+  },
+  "prompt": "Implement subscribe in src/newsletter/subscribe.js: it adds the address to the list, throws an Error for something that is not an email address, and does nothing if the address is already on the list."
+}

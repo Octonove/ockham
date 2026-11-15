@@ -9,11 +9,13 @@ export const TASKS_DIR = fileURLToPath(new URL('../tasks/', import.meta.url));
  * @property {string} id
  * @property {string} dir
  * @property {string} title
- * @property {string} kind      what the task probes: reuse, dependency, reach or safety
+ * @property {string} kind      what the task probes: reuse, dependency, reach, safety, guard or size
  * @property {string} prompt    the ticket the agent gets, and nothing else
  * @property {boolean} needsTest  whether the logic is risky enough to deserve a test
  * @property {{ file: string, patterns: string[] }} [reuse]
+ * @property {number} [budgetLines]  the source lines a careful change needs at the very most
  * @property {string} badFails  the field the bad reference must fail
+ * @property {Record<string, string>} [refs]  further references in refs/<name>, and the field each must fail
  */
 
 /**

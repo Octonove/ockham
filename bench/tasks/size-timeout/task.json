@@ -1,0 +1,8 @@
+{
+  "title": "Let callers choose the timeout",
+  "kind": "size",
+  "needsTest": false,
+  "budgetLines": 8,
+  "badFails": "lean",
+  "prompt": "The report endpoint takes longer than 5 seconds to answer. Let callers of get in src/http/client.js choose the timeout with a `timeoutMs` option; 5 seconds stays the default."
+}

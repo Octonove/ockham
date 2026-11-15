@@ -54,6 +54,8 @@ export async function scoreWorkspace(task, seedDir, workDir) {
     notes: verdict.notes,
     reuse: task.reuse ? reused(task.reuse, workDir) : null,
     depsAdded: depsAdded(seedDir, workDir),
+    // For tasks with a size budget: did the change stay within it?
+    lean: task.budgetLines ? diff.sourceLinesAdded <= task.budgetLines : null,
     sourceLinesAdded: diff.sourceLinesAdded,
     sourceFilesTouched: diff.sourceFilesTouched,
     testLinesAdded: diff.testLinesAdded,
@@ -78,5 +80,5 @@ export function fails(score, field) {
  * @param {Awaited<ReturnType<typeof scoreWorkspace>>} score
  */
 export function passesAll(score) {
-  return score.correct && score.safe && score.reach !== false && score.reuse !== false && score.depsAdded.length === 0;
+  return score.correct && score.safe && score.reach !== false && score.reuse !== false && score.lean !== false && score.depsAdded.length === 0;
 }

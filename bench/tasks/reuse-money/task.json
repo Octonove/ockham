@@ -1,0 +1,11 @@
+{
+  "title": "The cart shows no total",
+  "kind": "reuse",
+  "needsTest": false,
+  "badFails": "correct",
+  "reuse": {
+    "file": "src/cart/summary.js",
+    "patterns": ["from ['\"]\\.\\./shared/money\\.js['\"]", "formatMoney\\("]
+  },
+  "prompt": "The cart page shows no total. Make cartSummary in src/cart/summary.js return `total` as the price of everything in the cart, written the way the rest of the shop writes prices. Each item has `cents` (its unit price) and `quantity`."
+}

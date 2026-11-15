@@ -1,0 +1,7 @@
+{
+  "title": "Fifty members per page",
+  "kind": "reach",
+  "needsTest": false,
+  "badFails": "reach",
+  "prompt": "Show 50 members per page instead of 20."
+}

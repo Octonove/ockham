@@ -21,21 +21,24 @@ const share = (part, whole) => (whole ? `${part}/${whole}` : 'n/a');
 export function report(data) {
   const done = data.results.filter((cell) => cell.score);
   const failed = data.results.length - done.length;
+  const resolved = [...new Set(data.results.flatMap((cell) => cell.agent.models ?? []))].sort();
   const lines = [
     `# Benchmark run ${data.stamp}`,
     '',
-    `Model: ${data.model}. Arms: ${data.arms.join(', ')}. ${data.runs} run(s) per task and arm, ${data.results.length} sessions${failed ? `, ${failed} of them failed to run` : ''}.`,
+    `Model: ${data.model}${resolved.length ? ` (${resolved.join(', ')})` : ''}. Arms: ${data.arms.join(', ')}. ${data.runs} run(s) per task and arm, ${data.results.length} sessions${failed ? `, ${failed} of them failed to run` : ''}.`,
     'The agent could read and write files but not run commands, so this measures what it writes.',
     '',
     '## Per arm',
     '',
-    '| arm | correct | safe | reached every caller | reused what existed | added a dependency | test left where the logic needs one | source lines added (median) | cost $ (sum) | time s (median) |',
-    '|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|',
+    '| arm | correct | safe | reached every caller | reused what existed | added a dependency | within the size budget | test left where the logic needs one | source lines added (median) | cost $ (sum) | time s (median) |',
+    '|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|',
   ];
   for (const arm of data.arms) {
     const cells = done.filter((cell) => cell.arm === arm);
     const reach = cells.filter((cell) => cell.score.reach !== null);
     const reuse = cells.filter((cell) => cell.score.reuse !== null);
+    // `lean` is absent from runs scored before the measure existed.
+    const sized = cells.filter((cell) => typeof cell.score.lean === 'boolean');
     const risky = cells.filter((cell) => cell.needsTest);
     lines.push([
       '', arm,
@@ -44,6 +47,7 @@ export function report(data) {
       share(reach.filter((cell) => cell.score.reach).length, reach.length),
       share(reuse.filter((cell) => cell.score.reuse).length, reuse.length),
       share(cells.filter((cell) => cell.score.depsAdded.length).length, cells.length),
+      share(sized.filter((cell) => cell.score.lean).length, sized.length),
       share(risky.filter((cell) => cell.score.wroteTests).length, risky.length),
       median(cells.map((cell) => cell.score.sourceLinesAdded)) ?? 'n/a',
       cells.reduce((sum, cell) => sum + cell.agent.costUsd, 0).toFixed(3),
@@ -65,6 +69,7 @@ export function report(data) {
         if (score.reach === false) parts.push('MISSED A CALLER');
         if (score.reuse === false) parts.push('did not reuse');
         if (score.depsAdded.length) parts.push(`added ${score.depsAdded.join('+')}`);
+        if (score.lean === false) parts.push('OVER THE SIZE BUDGET');
         if (score.wroteTests) parts.push('wrote a test');
         return parts.join(' ');
       });

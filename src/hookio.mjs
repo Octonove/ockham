@@ -2,6 +2,8 @@
 // Every path fails open: a hook that cannot read or parse its input says nothing,
 // and the session goes on as if Ockham were not installed.
 
+const BYTE_ORDER_MARK = 0xfeff;
+
 /**
  * Read all of stdin as text. Resolves with whatever arrived when stdin ends,
  * errors, or the timer fires, whichever comes first.
@@ -30,13 +32,14 @@ export function readStdin(timeoutMs = 1000, stdin = process.stdin) {
 }
 
 /**
- * Parse a hook's JSON input. A byte-order mark, broken JSON or a non-object gives {}.
+ * Parse a hook's JSON input. A byte-order mark in front is skipped; broken JSON or a non-object gives {}.
  * @param {string} text
  * @returns {Record<string, any>}
  */
 export function parseInput(text) {
   try {
-    const value = JSON.parse(String(text).replace(/^﻿/, ''));
+    const raw = String(text);
+    const value = JSON.parse(raw.charCodeAt(0) === BYTE_ORDER_MARK ? raw.slice(1) : raw);
     return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
   } catch {
     return {};

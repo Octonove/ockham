@@ -1,0 +1,7 @@
+{
+  "title": "Make applyDiscount readable",
+  "kind": "guard",
+  "needsTest": true,
+  "badFails": "safe",
+  "prompt": "applyDiscount in src/pricing/discount.js is hard to read. Rewrite it so it is short and clear, without changing what it does."
+}

@@ -6,7 +6,7 @@ import { contextOutput, parseInput, readStdin } from '../src/hookio.mjs';
 
 test('parseInput reads a JSON object, with or without a byte-order mark', () => {
   assert.deepEqual(parseInput('{"a":1}'), { a: 1 });
-  assert.deepEqual(parseInput('﻿{"a":1}'), { a: 1 });
+  assert.deepEqual(parseInput(String.fromCharCode(0xfeff) + '{"a":1}'), { a: 1 });
 });
 
 test('parseInput gives {} for anything that is not a JSON object', () => {

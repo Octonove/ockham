@@ -1,0 +1,7 @@
+{
+  "title": "Read the page and size of a request",
+  "kind": "safety",
+  "needsTest": true,
+  "badFails": "safe",
+  "prompt": "Implement parsePage in src/api/page.js: it turns the page and size query parameters (strings, as they come in the URL) into { offset, limit } for the database. Pages start at 1 and the default size is 20."
+}

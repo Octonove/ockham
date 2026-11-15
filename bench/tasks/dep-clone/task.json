@@ -1,0 +1,8 @@
+{
+  "title": "The settings editor changes the live settings",
+  "kind": "dependency",
+  "needsTest": true,
+  "badFails": "deps",
+  "refs": { "json": "safe" },
+  "prompt": "Changing the accent colour in the settings editor changes it in the running app before the user presses Save. createDraft in src/settings/draft.js must return a copy the editor can change freely."
+}

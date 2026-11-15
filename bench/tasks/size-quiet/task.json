@@ -1,0 +1,9 @@
+{
+  "title": "A --quiet flag",
+  "kind": "size",
+  "needsTest": false,
+  "budgetLines": 8,
+  "badFails": "safe",
+  "refs": { "bloated": "lean" },
+  "prompt": "Add a --quiet flag to the tool in src/cli.js: with it, the 'copying ...' lines are not printed."
+}

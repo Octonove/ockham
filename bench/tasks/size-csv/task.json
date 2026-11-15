@@ -1,0 +1,9 @@
+{
+  "title": "Export the report as CSV",
+  "kind": "size",
+  "needsTest": true,
+  "budgetLines": 20,
+  "badFails": "safe",
+  "refs": { "bloated": "lean" },
+  "prompt": "exportReport in src/report/export.js only knows JSON. Add CSV: exportReport(report, 'csv') returns the column names on the first line and then one line per row."
+}

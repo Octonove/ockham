@@ -10,10 +10,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { runClaude } from './lib/agent.mjs';
+import { armEnv, cellEnv, runClaude } from './lib/agent.mjs';
 import { report } from './lib/report.mjs';
 import { fails, passesAll, scoreWorkspace } from './lib/score.mjs';
 import { loadTasks } from './lib/tasks.mjs';
+import { hushStatusLineNote, restoreTraces, snapshotTraces } from './lib/traces.mjs';
 import { copyTree } from './lib/workspace.mjs';
 
 const RUNS_DIR = fileURLToPath(new URL('./runs/', import.meta.url));
@@ -42,14 +43,16 @@ async function selftest() {
   let failed = 0;
   for (const task of loadTasks()) {
     const seed = join(task.dir, 'seed');
-    for (const ref of ['good', 'bad']) {
+    // The good reference must pass everything; every other one must fail the field it stands for.
+    const mustFail = { bad: task.badFails, ...task.refs };
+    for (const ref of ['good', ...Object.keys(mustFail)]) {
       const work = mkdtempSync(join(tmpdir(), `ockham-selftest-${task.id}-${ref}-`));
       copyTree(seed, work);
       copyTree(join(task.dir, 'refs', ref), work);
       const score = await scoreWorkspace(task, seed, work);
-      const ok = ref === 'good' ? passesAll(score) : fails(score, task.badFails);
+      const ok = ref === 'good' ? passesAll(score) : fails(score, mustFail[ref]);
       if (!ok) failed++;
-      const expected = ref === 'good' ? 'passes everything' : `fails "${task.badFails}"`;
+      const expected = ref === 'good' ? 'passes everything' : `fails "${mustFail[ref]}"`;
       console.log(`${ok ? 'ok  ' : 'FAIL'} ${task.id} / ${ref} reference ${expected}${ok ? '' : `  -> ${JSON.stringify(score)}`}`);
     }
   }
@@ -89,16 +92,27 @@ async function run(args) {
 
   /** @type {any[]} */
   const results = [];
-  await pool(cells, Number(args.workers || 3), async ({ task, arm, n }) => {
-    const work = join(workRoot, `${task.id}__${arm}__${n}`);
-    copyTree(join(task.dir, 'seed'), work);
-    const agent = await runClaude({ prompt: task.prompt, cwd: work, arm, model });
-    const score = agent.ok ? await scoreWorkspace(task, join(task.dir, 'seed'), work) : null;
-    results.push({ task: task.id, kind: task.kind, needsTest: task.needsTest, arm, n, work, agent, score });
-    const verdict = score ? `${score.correct ? 'correct' : 'WRONG'}${score.safe ? '' : ' UNSAFE'}` : `agent failed: ${agent.error}`;
-    console.log(`${task.id} / ${arm} #${n}: ${verdict}`);
-  });
+  const maxUsd = Number(args['max-usd'] || 1.5);
+  const traces = arms.includes('ponytail') ? snapshotTraces() : null;
+  if (traces) hushStatusLineNote(traces);
+  try {
+    await pool(cells, Number(args.workers || 3), async ({ task, arm, n }) => {
+      const work = join(workRoot, `${task.id}__${arm}__${n}`);
+      copyTree(join(task.dir, 'seed'), work);
+      const agent = await runClaude({ prompt: task.prompt, cwd: work, arm, model, maxUsd, env: { ...cellEnv(), ...armEnv(arm, workRoot) } });
+      const score = agent.ok ? await scoreWorkspace(task, join(task.dir, 'seed'), work) : null;
+      results.push({ task: task.id, kind: task.kind, needsTest: task.needsTest, arm, n, work, agent, score });
+      const verdict = score ? `${score.correct ? 'correct' : 'WRONG'}${score.safe ? '' : ' UNSAFE'}` : `agent failed: ${agent.error}`;
+      console.log(`${task.id} / ${arm} #${n}: ${verdict}`);
+    });
+  } finally {
+    const removed = traces ? restoreTraces(traces) : [];
+    if (removed.length) console.log(`Removed what the reference arm left in ${traces?.claudeDir}: ${removed.join(', ')}`);
+  }
 
+  // Cells finish in any order; the files keep the order they were planned in.
+  const order = new Map(cells.map((cell, index) => [`${cell.task.id}|${cell.arm}|${cell.n}`, index]));
+  results.sort((a, b) => (order.get(`${a.task}|${a.arm}|${a.n}`) ?? 0) - (order.get(`${b.task}|${b.arm}|${b.n}`) ?? 0));
   const data = { stamp, model, arms, runs, workRoot, results };
   writeFileSync(join(outDir, 'cells.json'), JSON.stringify(data, null, 2));
   const text = report(data);

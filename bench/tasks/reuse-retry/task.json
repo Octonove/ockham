@@ -1,0 +1,11 @@
+{
+  "title": "The carrier's API fails now and then",
+  "kind": "reuse",
+  "needsTest": false,
+  "badFails": "safe",
+  "reuse": {
+    "file": "src/shipping/rates.js",
+    "patterns": ["from ['\"]\\.\\./net/retry\\.js['\"]", "withRetry\\("]
+  },
+  "prompt": "The carrier's API fails now and then with a 503 and the checkout shows an error. Make shippingRates in src/shipping/rates.js try up to 3 times before giving up."
+}
