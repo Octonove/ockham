@@ -1,0 +1,7 @@
+{
+  "title": "An amount typed with a comma is read wrong",
+  "kind": "reach",
+  "needsTest": true,
+  "badFails": "reach",
+  "prompt": "Bug: an invoice with the line amount '12,50' adds 1250 to the total instead of 12.5. Customers in Spain type amounts with a comma as the decimal separator. Fix it."
+}

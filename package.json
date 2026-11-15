@@ -1,0 +1,24 @@
+{
+  "name": "@octonove/ockham",
+  "version": "0.0.1",
+  "private": true,
+  "description": "The smallest change that works, checked. Rules, a codebase index and end-of-task checks for coding agents.",
+  "type": "module",
+  "license": "UNLICENSED",
+  "author": "Octonove",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "ockham": "bin/ockham.mjs"
+  },
+  "scripts": {
+    "test": "node test/run.mjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "bench:selftest": "node bench/run.mjs --selftest"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.43",
+    "typescript": "6.0.3"
+  }
+}

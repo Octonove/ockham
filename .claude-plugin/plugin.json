@@ -1,0 +1,9 @@
+{
+  "name": "ockham",
+  "version": "0.0.1",
+  "description": "The smallest change that works, checked: rules, a codebase index and end-of-task checks for coding agents.",
+  "author": {
+    "name": "Octonove",
+    "url": "https://github.com/Octonove"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "title": "The search box fires on every keystroke",
+  "kind": "dependency",
+  "needsTest": false,
+  "badFails": "deps",
+  "reuse": {
+    "file": "src/search/box.js",
+    "patterns": ["from ['\"]\\.\\./util/timing\\.js['\"]", "debounce\\("]
+  },
+  "prompt": "The search box calls the API on every keystroke. Make it wait until the user has stopped typing for 300 ms before it searches."
+}

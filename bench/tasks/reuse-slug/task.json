@@ -1,0 +1,11 @@
+{
+  "title": "Categories need a URL-friendly id",
+  "kind": "reuse",
+  "needsTest": false,
+  "badFails": "correct",
+  "reuse": {
+    "file": "src/catalog/categories.js",
+    "patterns": ["from ['\"]\\.\\./lib/text\\.js['\"]", "slugify\\("]
+  },
+  "prompt": "Categories need a URL-friendly id. Make listCategories in src/catalog/categories.js return each category with an `id` next to its `name`, for example { id: 'home-garden', name: 'Home & Garden' }."
+}

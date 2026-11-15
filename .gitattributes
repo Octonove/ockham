@@ -1,0 +1,8 @@
+# One line ending everywhere: hooks and fixtures are hashed and diffed, and a
+# checkout on Windows must give the same bytes as one on Linux.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.gif binary
+*.mp4 binary
+*.glb binary
