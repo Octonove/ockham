@@ -2,7 +2,7 @@
   "title": "The same phone saved twice",
   "kind": "reach",
   "wave": 2,
-  "heldOut": true,
+  "heldOut": false,
   "needsTest": true,
   "badFails": "reach",
   "prompt": "Bug: a phone typed as '612 345 678' and the same one typed as '612-345-678' are saved as two different contacts. A phone must be stored as digits only, keeping a leading +."

@@ -2,7 +2,7 @@
   "title": "A cent goes missing when a bill is split",
   "kind": "test",
   "wave": 2,
-  "heldOut": true,
+  "heldOut": false,
   "needsTest": true,
   "badFails": "correct",
   "prompt": "Bug: splitting 100.00 € between 3 people gives 33.33 € each and a cent goes missing. The shares must add up to the total: the first people in the list pay the extra cents."

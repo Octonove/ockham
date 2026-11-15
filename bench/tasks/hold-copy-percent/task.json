@@ -2,7 +2,7 @@
   "title": "A discount that keeps a cent",
   "kind": "reach",
   "wave": 4,
-  "heldOut": true,
+  "heldOut": false,
   "needsTest": true,
   "badFails": "reach",
   "prompt": "Bug: with 15 % off, an item of 9.99 € is sold at 8.50 € during a promotion. 15 % of 9.99 is 1.4985, which rounds to 1.50, so the price should be 8.49 €. Fix it."

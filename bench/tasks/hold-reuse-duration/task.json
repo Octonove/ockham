@@ -1,0 +1,16 @@
+{
+  "title": "How long the call lasted",
+  "kind": "reuse",
+  "wave": 5,
+  "heldOut": true,
+  "needsTest": false,
+  "badFails": "correct",
+  "reuse": {
+    "file": "src/calls/log.js",
+    "patterns": [
+      "from ['\"]\\.\\./shared/duration\\.js['\"]",
+      "formatDuration\\("
+    ]
+  },
+  "prompt": "The call log shows how long each call lasted in seconds: a call of an hour and five minutes says '3900 s'. In src/calls/log.js, show the length of each call the way the rest of the app shows lengths of time."
+}

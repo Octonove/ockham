@@ -2,7 +2,7 @@
   "title": "Highlight the search term",
   "kind": "size",
   "wave": 2,
-  "heldOut": true,
+  "heldOut": false,
   "needsTest": true,
   "budgetLines": 12,
   "badFails": "safe",

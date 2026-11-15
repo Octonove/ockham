@@ -2,7 +2,7 @@
   "title": "A search filter in the catalogue address",
   "kind": "size",
   "wave": 2,
-  "heldOut": true,
+  "heldOut": false,
   "needsTest": false,
   "budgetLines": 6,
   "badFails": "safe",

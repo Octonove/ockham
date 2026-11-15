@@ -2,7 +2,7 @@
   "title": "The date on the receipt",
   "kind": "reuse",
   "wave": 2,
-  "heldOut": true,
+  "heldOut": false,
   "needsTest": false,
   "badFails": "correct",
   "reuse": {

@@ -1,0 +1,9 @@
+{
+  "title": "Delivery in two working days",
+  "kind": "reach",
+  "wave": 5,
+  "heldOut": true,
+  "needsTest": false,
+  "badFails": "reach",
+  "prompt": "We deliver in 2 working days now, not 3, but the checkout still promises 3. Fix it."
+}

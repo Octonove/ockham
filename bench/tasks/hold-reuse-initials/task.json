@@ -1,0 +1,16 @@
+{
+  "title": "Initials in the empty circle",
+  "kind": "reuse",
+  "wave": 5,
+  "heldOut": true,
+  "needsTest": false,
+  "badFails": "safe",
+  "reuse": {
+    "file": "src/chat/sidebar.js",
+    "patterns": [
+      "from ['\"]\\.\\./people/initials\\.js['\"]",
+      "initials\\("
+    ]
+  },
+  "prompt": "In the chat list, people without a photo get an empty circle. Show their initials in it instead, the way the member directory does: when the person a chat is with has no photo, the entry that src/chat/sidebar.js makes gets an `initials` field."
+}

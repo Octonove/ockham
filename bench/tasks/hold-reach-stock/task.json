@@ -1,0 +1,9 @@
+{
+  "title": "The last three in stock",
+  "kind": "reach",
+  "wave": 5,
+  "heldOut": true,
+  "needsTest": true,
+  "badFails": "reach",
+  "prompt": "Bug: customers cannot buy the last units of a product. With 3 left in stock, adding 3 to the cart says there is not enough stock. Fix it."
+}

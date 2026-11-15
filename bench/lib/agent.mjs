@@ -29,8 +29,11 @@ const OCKHAM_ARMS = {
   // The compact ruleset is what subagents get; this arm gives it to the session, to measure it.
   'ockham-compact': { OCKHAM_RULES: 'compact' },
 };
-// What an arm can switch on or off by name: ockham+hints, ockham-index+nofacts, ockham+notests.
-const EXTRAS = { facts: { OCKHAM_FACTS: 'on' }, nofacts: { OCKHAM_FACTS: 'off' }, hints: { OCKHAM_HINTS: 'on' }, nohints: { OCKHAM_HINTS: 'off' }, notests: { OCKHAM_TESTS: 'off' } };
+// What an arm can switch on or off by name: ockham+hints, ockham-index+nofacts, ockham+notests, ockham+maplist.
+const EXTRAS = {
+  facts: { OCKHAM_FACTS: 'on' }, nofacts: { OCKHAM_FACTS: 'off' }, hints: { OCKHAM_HINTS: 'on' }, nohints: { OCKHAM_HINTS: 'off' }, notests: { OCKHAM_TESTS: 'off' },
+  fulllist: { OCKHAM_LIST: 'full' }, maplist: { OCKHAM_LIST: 'map' }, nolist: { OCKHAM_LIST: 'off' },
+};
 
 /**
  * An arm's name taken apart: "ockham-index+facts" is the arm ockham-index with facts on.

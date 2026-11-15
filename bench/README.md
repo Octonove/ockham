@@ -31,7 +31,7 @@ The fourth point is a limit worth knowing: this measures what an agent writes, n
 | `ockham-index` | the index alone, with the rules off |
 | `ockham-compact` | the compact ruleset given to the session: the text subagents get, measured on its own |
 
-An arm can switch a part on or off by name. `ockham+hints` brings up what the project has for the request, which is off as shipped; `ockham+nofacts` leaves out where the tests are, which is on; `ockham+notests` leaves the rule about tests out of the ruleset. They go with any Ockham arm: `ockham-index+nofacts` is the list of helpers and nothing else. A run records the hash of the ruleset each arm was given, so `ockham+notests` shows as a text of its own.
+An arm can switch a part on or off by name. `ockham+hints` brings up what the project has for the request, which is off as shipped; `ockham+nofacts` leaves out where the tests are, which is on; `ockham+notests` leaves the rule about tests out of the ruleset; `ockham+maplist` gives the list of helpers without what each one does, `ockham+nolist` gives none, and `ockham+fulllist` says by name what is shipped. They go with any Ockham arm: `ockham-index+nofacts` is the list of helpers and nothing else. A run records the hash of the ruleset each arm was given, so `ockham+notests` shows as a text of its own.
 
 An Ockham arm keeps its index and its journal in the run's own folder (`OCKHAM_CACHE_DIR`), never in the user's cache. After each session the run reads the journal and records what the index said to it: the report has a table of that, and lists every warning with whether the session then passed.
 
@@ -89,13 +89,14 @@ Two tasks must not write the same file, apart from `package.json`: their seeds a
 | guard | `guard-discount` | makes a function shorter by dropping the checks that looked like clutter |
 | size | `size-quiet`, `size-csv`, `size-timeout` | builds a framework for a change of three lines |
 
-Those eighteen are round 1. Ten more came with the rules, and three with the index:
+Those eighteen are round 1. Ten more came with the rules, and nine with the index:
 
 | Round | Tasks | What they are for |
 |---|---|---|
-| 2, held out | `hold-reach-phone`, `hold-reach-upload`, `hold-cut-highlight`, `hold-cut-url`, `hold-reuse-date`, `hold-test-split` | written after rules v0 were frozen, never used to change a rule. `hold-test-split` is of a kind of its own, `test`: does the fix leave a test behind |
+| 2 | `hold-reach-phone`, `hold-reach-upload`, `hold-cut-highlight`, `hold-cut-url`, `hold-reuse-date`, `hold-test-split` | written after rules v0 were frozen and held out for both versions of the rules and for the first round of the index. What they showed about cost was then used to work on the list, so they are tuning tasks now. `hold-test-split` is of a kind of its own, `test`: does the fix leave a test behind |
 | 3 | `hold-reach-points`, `hold-reach-sort`, `hold-cut-labels`, `hold-cut-suppliers` | two bug fixes whose logic is copied in another module, and two readers of hand-made files where real input costs lines: the two shapes the reference tool failed on. They were held out for rules v0, and what they showed was then used to change the rules, so they are tuning tasks now. They keep their names: the saved runs know them by those |
-| 4, held out | `hold-copy-age`, `hold-copy-percent`, `hold-copy-coupon` | three bug fixes whose logic is copied in another module, written before the index's copy finder was run on them, with what it was expected to do on each written down first: one copy has the shape the finder was built on, one has other names for its variables, and in one the fix only adds to the line. The last two are where it was expected to say nothing |
+| 4 | `hold-copy-age`, `hold-copy-percent`, `hold-copy-coupon` | three bug fixes whose logic is copied in another module, written before the index's copy finder was run on them, with what it was expected to do on each written down first: one copy has the shape the finder was built on, one has other names for its variables, and in one the fix only adds to the line. The second was then used to teach the finder copies with other names, so they are tuning tasks now |
+| 5, held out | `hold-reach-lockout`, `hold-reach-stock`, `hold-reach-delivery`, `hold-reuse-duration`, `hold-reuse-initials`, `hold-safe-next` | written for the second round of the index, before it was run on them: three copies of different kinds (the same line; the same condition in another line; the same call with the same number), a helper the list names and one it leaves out, and a task where the index has nothing to say |
 
 **Tuning tasks and held-out tasks.** Rules are adjusted on tuning tasks and proved on held-out ones (`"heldOut": true`), which are written after a ruleset is frozen and run once. A held-out task that has been looked at to change a rule stops being proof: it becomes a tuning task, and new ones are written.
 
