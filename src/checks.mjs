@@ -224,11 +224,14 @@ export function checksMade(text) {
         add(`limit:${[all[at - 1], all[at + 1]].find(number) ?? ''}`);
       } else if (/^(?:min|max|clamp)$/.test(token) && all[at + 1] === '(') {
         // The numbers among what it is given: Math.min(100, x) holds x to 100, clamp(x, 0, 100) to both.
+        // With no number among them it still holds x to something: Math.min(x, MAX) is a limit with a name.
+        let numbers = 0;
         for (let i = at + 1, depth = 0; i < all.length; i++) {
           if (all[i] === '(') depth++;
           else if (all[i] === ')' && --depth === 0) break;
-          else if (depth === 1 && number(all[i]) && /^[(,]$/.test(all[i - 1]) && /^[),]$/.test(all[i + 1] ?? '')) add(`limit:${all[i]}`);
+          else if (depth === 1 && number(all[i]) && /^[(,]$/.test(all[i - 1]) && /^[),]$/.test(all[i + 1] ?? '')) add(`limit:${all[i]}`), numbers++;
         }
+        if (!numbers) add('limit:');
       } else if (token === 'throw' && !STUB.test(code)) add('throw');
       else if (token === 'typeof') add('typeof');
       else if (VALIDATOR.test(token) && all[at + 1] === '(' && all[at - 1] !== 'function') add(`call:${token}`);
@@ -413,7 +416,7 @@ const SAY = {
     copy: (/** @type {{ file: string, line: number, text: string }} */ place) => `What this task replaced is still in ${place.file}:${place.line}: ${code(place.text)}. If this was a fix, it belongs there too.`,
     guard: (/** @type {string} */ file, /** @type {string[]} */ lines) => `${file} no longer makes ${lines.length > 1 ? 'checks' : 'a check'} it made: ${lines.map(code).join(', ')}. Every check the code made is still made: if a shorter version dropped ${lines.length > 1 ? 'them' : 'it'}, put ${lines.length > 1 ? 'them' : 'it'} back.`,
     test: (/** @type {string} */ file, /** @type {string} */ why) => `This task ${why === 'fix' ? 'fixes a bug' : `changes ${{ money: 'how money is worked out', parsing: 'how text is taken apart', validation: 'what input is accepted', security: 'something an attacker can reach' }[why]}`} in ${file}, and no test was added or changed. Add or extend one test for the case that matters, where the project keeps its tests.`,
-    run: 'Source was changed after the last time the tests ran. Run them before you finish.',
+    run: 'The tests have not been run since the last change to the source. Run them before you finish.',
     claim: 'Your summary says the tests pass, and they were not run after the last change. Run them, or say that they were not run.',
   },
   es: {
@@ -424,7 +427,7 @@ const SAY = {
     copy: (/** @type {{ file: string, line: number, text: string }} */ place) => `Lo que esta tarea ha sustituido sigue en ${place.file}:${place.line}: ${code(place.text)}. Si era un arreglo, hace falta también allí.`,
     guard: (/** @type {string} */ file, /** @type {string[]} */ lines) => `${file} ya no hace ${lines.length > 1 ? 'comprobaciones que hacía' : 'una comprobación que hacía'}: ${lines.map(code).join(', ')}. Todo lo que el código comprobaba se sigue comprobando: si una versión más corta ${lines.length > 1 ? 'las' : 'la'} ha dejado fuera, vuelve a ${lines.length > 1 ? 'ponerlas' : 'ponerla'}.`,
     test: (/** @type {string} */ file, /** @type {string} */ why) => `Esta tarea ${why === 'fix' ? 'arregla un fallo' : `cambia ${{ money: 'cómo se calcula el dinero', parsing: 'cómo se trocea un texto', validation: 'qué entrada se acepta', security: 'algo que un atacante puede alcanzar' }[why]}`} en ${file}, y no se ha añadido ni cambiado ninguna prueba. Añade o amplía una prueba para el caso que importa, donde el proyecto tiene las suyas.`,
-    run: 'Se ha cambiado código después de la última vez que se ejecutaron las pruebas. Ejecútalas antes de terminar.',
+    run: 'Las pruebas no se han ejecutado desde el último cambio en el código. Ejecútalas antes de terminar.',
     claim: 'Tu resumen dice que las pruebas pasan, y no se han ejecutado después del último cambio. Ejecútalas, o di que no se han ejecutado.',
   },
 };

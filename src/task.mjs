@@ -118,16 +118,25 @@ export function taskWrites(input, env) {
   if (SOURCE.test(file) && !isTest(file)) mark(dir, 'wrote');
 }
 
-const RUNS_TESTS = /\b(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?(?:test|t)\b|\bnode\s+(?:\S+\s+)*--test\b|\b(?:vitest|jest|mocha|ava|pytest)\b|\b(?:cargo|go|deno|bun)\s+test\b/;
+// A command that speaks of tests runs them, unless all it does is look at files or move them.
+const SPEAKS_OF_TESTS = /(?:^|[^A-Za-z])(?:tests?|specs?|jest|vitest|mocha|pytest|ava|playwright|cypress|phpunit|rspec|ctest|tox)(?![A-Za-z])/;
+const ONLY_LOOKS = /^(?:cat|ls|dir|grep|rg|find|git|sed|awk|head|tail|wc|echo|mkdir|touch|rm|cp|mv|cd|code|open|type|stat|tree|less|more)$/;
 
 /**
- * Whether a command runs the project's tests: one of the usual runners, or the very command
- * the project's "test" script names.
+ * Whether a command runs the project's tests: the very command the project's "test" script
+ * names, or any part of the line that speaks of tests and does more than look. It errs on
+ * the side of yes: a session wrongly told that it ran no tests would run them twice.
  * @param {string} command
  * @param {string} [script]
  */
 export function runsTests(command, script = '') {
-  return RUNS_TESTS.test(command) || (script.trim().length > 3 && command.includes(script.trim()));
+  if (script.trim().length > 3 && command.includes(script.trim())) return true;
+  return command.split(/&&|\|\||[;|\n]/).some((part) => {
+    const words = part.trim().split(/\s+/);
+    // What comes first may set a variable or call through npx: the program is what follows.
+    const program = words.find((word) => !/^[A-Za-z_][A-Za-z0-9_]*=/.test(word) && !/^(?:npx|sudo|time|env)$/.test(word)) ?? '';
+    return !ONLY_LOOKS.test(program) && SPEAKS_OF_TESTS.test(part);
+  });
 }
 
 /**

@@ -143,6 +143,9 @@ test('a shorter version that drops a limit or a throw is found; one that keeps t
   assert.deepEqual(lost(dropped)[0].lines, ['if (pct > 100) {', 'if (pct < 0) {', "if (typeof pct !== 'number') throw new TypeError('A discount is a number.');"]);
   const kept = "export function applyDiscount(order, discount) {\n  if (typeof discount.value !== 'number') throw new TypeError('A discount is a number.');\n  const pct = Math.min(100, Math.max(0, discount.value));\n  return order.total - Math.round(order.total * pct / 100);\n}\n";
   assert.deepEqual(lost(kept), []);
+  // A limit given a name, in a comparison or in what holds a value to it.
+  const named = "const MOST = 100;\n\nexport function applyDiscount(order, discount) {\n  if (typeof discount.value !== 'number') throw new TypeError('A discount is a number.');\n  const pct = Math.min(Math.max(discount.value, 0), MOST);\n  return order.total - Math.round(order.total * pct / 100);\n}\n";
+  assert.deepEqual(lost(named), []);
   const helper = "const clamp = (value, low, high) => Math.min(Math.max(value, low), high);\n\nexport function applyDiscount(order, discount) {\n  if (typeof discount.value !== 'number') throw new TypeError('A discount is a number.');\n  return order.total - Math.round(order.total * clamp(discount.value, 0, 100) / 100);\n}\n";
   assert.deepEqual(lost(helper), []);
   // Only the throw gone: fewer throws is a check lost, even with the limits in place.

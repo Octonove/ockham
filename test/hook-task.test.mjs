@@ -147,10 +147,11 @@ test('a session with a shell is asked to run the tests it did not run after its 
 });
 
 test('the commands that run the tests are told from the ones that do not', () => {
-  for (const command of ['npm test', 'npm run test -- --watch=false', 'pnpm test', 'node --test test/', 'node --experimental-vm-modules --test', 'npx vitest run', 'cd app && yarn test', 'pytest -q', 'cargo test']) {
+  for (const command of ['npm test', 'npm run test:unit -- --watch=false', 'pnpm test', 'node --test test/', 'node --experimental-vm-modules --test', 'npx vitest run', 'cd app && yarn test', 'pytest -q', 'cargo test',
+    'make test', './scripts/test.sh', 'CI=1 npx playwright test', 'node test/run.mjs', 'git stash && npm test']) {
     assert.ok(runsTests(command), command);
   }
-  for (const command of ['git status', 'npm install', 'node test.js', 'cat test/a.test.js', 'npm run build']) {
+  for (const command of ['git status', 'npm install', 'node build.js', 'cat test/a.test.js', 'npm run build', 'grep -rn "test" src', 'git add test/ && git commit -m "tests"', 'ls test', 'node --version', 'npm run latest']) {
     assert.ok(!runsTests(command), command);
   }
   assert.ok(runsTests('node test/run.mjs', 'node test/run.mjs'), 'the very command the test script names');
