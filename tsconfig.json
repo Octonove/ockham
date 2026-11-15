@@ -11,6 +11,6 @@
     "types": ["node"],
     "skipLibCheck": true
   },
-  "include": ["bin/**/*.mjs", "src/**/*.mjs", "hooks/**/*.mjs", "test/**/*.mjs", "bench/*.mjs", "bench/lib/**/*.mjs"],
+  "include": ["bin/**/*.mjs", "src/**/*.mjs", "hooks/**/*.mjs", "test/**/*.mjs", "bench/*.mjs", "bench/lib/**/*.mjs", "docs/demo/*.mjs"],
   "exclude": ["node_modules", "bench/tasks", "bench/runs"]
 }

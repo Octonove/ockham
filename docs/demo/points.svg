@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 596" width="1000" height="596" role="img" aria-label="The same ticket given to a coding agent without Ockham and with it: the steps each session took and what the hidden check found.">
+<style>
+text{font-family:ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;font-size:15px;fill:#c9d1d9;white-space:pre}
+.ticket{fill:#8b949e}.first{fill:#e6edf3}
+.title{fill:#8b949e;font-weight:700;letter-spacing:1px}
+.mark{fill:#484f58}.tool{fill:#79c0ff}.path{fill:#e6edf3}
+.says{fill:#8b949e;font-style:italic}
+.ockham{fill:#e3b341;font-weight:700}
+.pass{fill:#3fb950;font-weight:700}.fail{fill:#f85149;font-weight:700}
+.cost{fill:#8b949e}
+.rule{stroke:#30363d;stroke-width:1}
+@keyframes a0{0%,1.68%{opacity:0}2.48%,97%{opacity:1}100%{opacity:0}}
+@keyframes a1{0%,9.78%{opacity:0}10.58%,97%{opacity:1}100%{opacity:0}}
+@keyframes a2{0%,12.85%{opacity:0}13.65%,97%{opacity:1}100%{opacity:0}}
+@keyframes a3{0%,15.92%{opacity:0}16.72%,97%{opacity:1}100%{opacity:0}}
+@keyframes a4{0%,18.99%{opacity:0}19.79%,97%{opacity:1}100%{opacity:0}}
+@keyframes a5{0%,22.07%{opacity:0}22.87%,97%{opacity:1}100%{opacity:0}}
+@keyframes a6{0%,25.14%{opacity:0}25.94%,97%{opacity:1}100%{opacity:0}}
+@keyframes a7{0%,28.21%{opacity:0}29.01%,97%{opacity:1}100%{opacity:0}}
+@keyframes a8{0%,58.10%{opacity:0}58.90%,97%{opacity:1}100%{opacity:0}}
+@keyframes a9{0%,60.89%{opacity:0}61.69%,97%{opacity:1}100%{opacity:0}}
+@keyframes a10{0%,1.68%{opacity:0}2.48%,97%{opacity:1}100%{opacity:0}}
+@keyframes a11{0%,9.78%{opacity:0}10.58%,97%{opacity:1}100%{opacity:0}}
+@keyframes a12{0%,12.85%{opacity:0}13.65%,97%{opacity:1}100%{opacity:0}}
+@keyframes a13{0%,15.92%{opacity:0}16.72%,97%{opacity:1}100%{opacity:0}}
+@keyframes a14{0%,18.99%{opacity:0}19.79%,97%{opacity:1}100%{opacity:0}}
+@keyframes a15{0%,22.07%{opacity:0}22.87%,97%{opacity:1}100%{opacity:0}}
+@keyframes a16{0%,25.14%{opacity:0}25.94%,97%{opacity:1}100%{opacity:0}}
+@keyframes a17{0%,28.21%{opacity:0}29.01%,97%{opacity:1}100%{opacity:0}}
+@keyframes a18{0%,31.28%{opacity:0}32.08%,97%{opacity:1}100%{opacity:0}}
+@keyframes a19{0%,34.36%{opacity:0}35.16%,97%{opacity:1}100%{opacity:0}}
+@keyframes a20{0%,37.43%{opacity:0}38.23%,97%{opacity:1}100%{opacity:0}}
+@keyframes a21{0%,40.50%{opacity:0}41.30%,97%{opacity:1}100%{opacity:0}}
+@keyframes a22{0%,43.58%{opacity:0}44.38%,97%{opacity:1}100%{opacity:0}}
+@keyframes a23{0%,46.65%{opacity:0}47.45%,97%{opacity:1}100%{opacity:0}}
+@keyframes a24{0%,49.72%{opacity:0}50.52%,97%{opacity:1}100%{opacity:0}}
+@keyframes a25{0%,52.79%{opacity:0}53.59%,97%{opacity:1}100%{opacity:0}}
+@keyframes a26{0%,58.10%{opacity:0}58.90%,97%{opacity:1}100%{opacity:0}}
+@keyframes a27{0%,60.89%{opacity:0}61.69%,97%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){text{animation:none!important;opacity:1}}
+</style>
+<rect width="1000" height="596" rx="12" fill="#0d1117"/>
+<rect width="1000" height="40" rx="12" fill="#161b22"/><rect y="28" width="1000" height="12" fill="#161b22"/>
+<circle cx="24" cy="20" r="6" fill="#f85149"/><circle cx="44" cy="20" r="6" fill="#d29922"/><circle cx="64" cy="20" r="6" fill="#3fb950"/>
+<text x="500" y="25" text-anchor="middle" style="fill:#8b949e;font-size:13px">The reward you have exactly the points for · two recorded sessions, sonnet</text>
+<text x="32" y="74" class="ticket first">ticket  Bug: a customer with exactly 100 points cannot redeem the 100-point reward at checkout. Having</text>
+<text x="32" y="98" class="ticket">        the points a reward costs is enough. Fix it.</text>
+<line x1="488" y1="108" x2="488" y2="574" class="rule"/>
+<text x="32" y="134" class="title" style="animation:a0 17.90s linear infinite">WITHOUT OCKHAM</text>
+<text x="32" y="158" style="animation:a1 17.90s linear infinite"><tspan class="mark">› </tspan><tspan class="tool">Grep</tspan><tspan class="path"> "points"</tspan></text>
+<text x="32" y="182" style="animation:a2 17.90s linear infinite"><tspan class="mark">› </tspan><tspan class="tool">Read</tspan><tspan class="path"> src/loyalty/redeem.js</tspan></text>
+<text x="32" y="206" style="animation:a3 17.90s linear infinite"><tspan class="mark">› </tspan><tspan class="tool">Edit</tspan><tspan class="path"> src/loyalty/redeem.js</tspan></text>
+<text x="32" y="230" class="says" style="animation:a4 17.90s linear infinite">Fixed: redeemable used strict &gt;, so a customer</text>
+<text x="32" y="254" class="says" style="animation:a5 17.90s linear infinite">with exactly 100 points failed the 100-point</text>
+<text x="32" y="278" class="says" style="animation:a6 17.90s linear infinite">reward check. Changed to &gt;= in</text>
+<text x="32" y="302" class="says" style="animation:a7 17.90s linear infinite">src/loyalty/redeem.js:9.</text>
+<text x="32" y="542" class="fail" style="animation:a8 17.90s linear infinite">hidden check: ✗ one place fixed, the other left wrong</text>
+<text x="32" y="566" class="cost" style="animation:a9 17.90s linear infinite">4 turns · 1 line of code · no test · $0.019</text>
+<text x="512" y="134" class="title" style="animation:a10 17.90s linear infinite">WITH OCKHAM</text>
+<text x="512" y="158" class="ockham" style="animation:a11 17.90s linear infinite">Ockham: here are the 24 helpers this project</text>
+<text x="512" y="182" class="ockham" style="animation:a12 17.90s linear infinite">shares, and where its tests are</text>
+<text x="512" y="206" style="animation:a13 17.90s linear infinite"><tspan class="mark">› </tspan><tspan class="tool">Read</tspan><tspan class="path"> src/loyalty/redeem.js</tspan></text>
+<text x="512" y="230" style="animation:a14 17.90s linear infinite"><tspan class="mark">› </tspan><tspan class="tool">Edit</tspan><tspan class="path"> src/loyalty/redeem.js</tspan></text>
+<text x="512" y="254" class="ockham" style="animation:a15 17.90s linear infinite">Ockham: what this change replaces is also in</text>
+<text x="512" y="278" class="ockham" style="animation:a16 17.90s linear infinite">src/emails/points.js:5</text>
+<text x="512" y="302" style="animation:a17 17.90s linear infinite"><tspan class="mark">› </tspan><tspan class="tool">Read</tspan><tspan class="path"> src/emails/points.js</tspan></text>
+<text x="512" y="326" style="animation:a18 17.90s linear infinite"><tspan class="mark">› </tspan><tspan class="tool">Glob</tspan><tspan class="path"> "test/*.js"</tspan></text>
+<text x="512" y="350" style="animation:a19 17.90s linear infinite"><tspan class="mark">› </tspan><tspan class="tool">Read</tspan><tspan class="path"> test/redeem.test.js</tspan></text>
+<text x="512" y="374" style="animation:a20 17.90s linear infinite"><tspan class="mark">› </tspan><tspan class="tool">Edit</tspan><tspan class="path"> src/emails/points.js</tspan></text>
+<text x="512" y="398" style="animation:a21 17.90s linear infinite"><tspan class="mark">› </tspan><tspan class="tool">Edit</tspan><tspan class="path"> test/redeem.test.js</tspan></text>
+<text x="512" y="422" class="says" style="animation:a22 17.90s linear infinite">Fixed redeemable() in src/loyalty/redeem.js to</text>
+<text x="512" y="446" class="says" style="animation:a23 17.90s linear infinite">use &gt;= instead of &gt;, so exact-cost redemptions</text>
+<text x="512" y="470" class="says" style="animation:a24 17.90s linear infinite">work. Also updated src/emails/points.js, which</text>
+<text x="512" y="494" class="says" style="animation:a25 17.90s linear infinite">duplicated the same buggy comparison, to reuse …</text>
+<text x="512" y="542" class="pass" style="animation:a26 17.90s linear infinite">hidden check: ✓ passes</text>
+<text x="512" y="566" class="cost" style="animation:a27 17.90s linear infinite">8 turns · 3 lines of code · a test · $0.053</text>
+</svg>

@@ -1,0 +1,66 @@
+{
+  "task": "hold-reach-points",
+  "title": "The reward you have exactly the points for",
+  "prompt": "Bug: a customer with exactly 100 points cannot redeem the 100-point reward at checkout. Having the points a reward costs is enough. Fix it.",
+  "arm": "baseline",
+  "model": "sonnet",
+  "events": [
+    {
+      "type": "tool",
+      "at": 1794744947659,
+      "name": "Grep",
+      "input": {
+        "pattern": "points",
+        "output_mode": "files_with_matches"
+      }
+    },
+    {
+      "type": "tool",
+      "at": 1794744950493,
+      "name": "Read",
+      "input": {
+        "file_path": "src/loyalty/redeem.js"
+      }
+    },
+    {
+      "type": "tool",
+      "at": 1794744953441,
+      "name": "Edit",
+      "input": {
+        "replace_all": false,
+        "file_path": "src/loyalty/redeem.js",
+        "old_string": "  return REWARDS.filter((reward) => points > reward.cost);",
+        "new_string": "  return REWARDS.filter((reward) => points >= reward.cost);"
+      }
+    },
+    {
+      "type": "says",
+      "at": 1794744955300,
+      "text": "Fixed: `redeemable` used strict `>`, so a customer with exactly 100 points failed the 100-point reward check. Changed to `>=` in `src/loyalty/redeem.js:9`."
+    },
+    {
+      "type": "end",
+      "at": 1794744955312,
+      "turns": 4,
+      "costUsd": 0.0192484,
+      "seconds": 9.949
+    }
+  ],
+  "score": {
+    "correct": true,
+    "safe": true,
+    "reach": false,
+    "notes": "with 100 points checkout offers [\"Free delivery\"] and the email says \"Keep collecting: your first reward is close.\"",
+    "reuse": null,
+    "depsAdded": [],
+    "lean": null,
+    "sourceLinesAdded": 1,
+    "sourceFilesTouched": 1,
+    "testLinesAdded": 0,
+    "wroteTests": false,
+    "filesAdded": [],
+    "filesChanged": [
+      "src/loyalty/redeem.js"
+    ]
+  }
+}

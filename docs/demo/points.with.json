@@ -1,0 +1,132 @@
+{
+  "task": "hold-reach-points",
+  "title": "The reward you have exactly the points for",
+  "prompt": "Bug: a customer with exactly 100 points cannot redeem the 100-point reward at checkout. Having the points a reward costs is enough. Fix it.",
+  "arm": "ockham",
+  "model": "sonnet",
+  "events": [
+    {
+      "type": "ockham",
+      "at": 1794745138407,
+      "event": "shared",
+      "text": "here are the 24 helpers this project shares, and where its tests are"
+    },
+    {
+      "type": "tool",
+      "at": 1794745141358,
+      "name": "Read",
+      "input": {
+        "file_path": "src/loyalty/redeem.js"
+      }
+    },
+    {
+      "type": "says",
+      "at": 1794745142961,
+      "text": "Found it: `points > reward.cost` excludes an exact match. Fixing to `>=`."
+    },
+    {
+      "type": "tool",
+      "at": 1794745144517,
+      "name": "Edit",
+      "input": {
+        "replace_all": false,
+        "file_path": "src/loyalty/redeem.js",
+        "old_string": "  return REWARDS.filter((reward) => points > reward.cost);",
+        "new_string": "  return REWARDS.filter((reward) => points >= reward.cost);"
+      }
+    },
+    {
+      "type": "ockham",
+      "at": 1794745144586,
+      "event": "copy",
+      "text": "what this change replaces is also in src/emails/points.js:5"
+    },
+    {
+      "type": "says",
+      "at": 1794745146540,
+      "text": "The hook flagged the same bug duplicated in `src/emails/points.js`. Let me check it and the existing tests."
+    },
+    {
+      "type": "tool",
+      "at": 1794745147150,
+      "name": "Read",
+      "input": {
+        "file_path": "src/emails/points.js"
+      }
+    },
+    {
+      "type": "tool",
+      "at": 1794745147402,
+      "name": "Glob",
+      "input": {
+        "pattern": "test/*.js"
+      }
+    },
+    {
+      "type": "says",
+      "at": 1794745149908,
+      "text": "This should use `redeemable()` instead of duplicating the filter logic. Let me check the existing test file style first."
+    },
+    {
+      "type": "tool",
+      "at": 1794745150937,
+      "name": "Read",
+      "input": {
+        "file_path": "test/redeem.test.js"
+      }
+    },
+    {
+      "type": "tool",
+      "at": 1794745155890,
+      "name": "Edit",
+      "input": {
+        "replace_all": false,
+        "file_path": "src/emails/points.js",
+        "old_string": "import { REWARDS } from '../loyalty/redeem.js';\n\n/** The monthly email that tells a customer how many points they have and what those points buy. */\nexport function pointsEmail(customer) {\n  const within = REWARDS.filter((reward) => customer.points > reward.cost).map((reward) => reward.name);",
+        "new_string": "import { redeemable } from '../loyalty/redeem.js';\n\n/** The monthly email that tells a customer how many points they have and what those points buy. */\nexport function pointsEmail(customer) {\n  const within = redeemable(customer.points).map((reward) => reward.name);"
+      }
+    },
+    {
+      "type": "tool",
+      "at": 1794745159094,
+      "name": "Edit",
+      "input": {
+        "replace_all": false,
+        "file_path": "test/redeem.test.js",
+        "old_string": "test('offers nothing below the cheapest reward', () => {\n  assert.deepEqual(redeemable(40), []);\n});",
+        "new_string": "test('offers nothing below the cheapest reward', () => {\n  assert.deepEqual(redeemable(40), []);\n});\n\ntest('offers a reward when points exactly match its cost', () => {\n  assert.deepEqual(redeemable(100).map((reward) => reward.name), ['Free delivery']);\n});"
+      }
+    },
+    {
+      "type": "says",
+      "at": 1794745162164,
+      "text": "Fixed `redeemable()` in `src/loyalty/redeem.js` to use `>=` instead of `>`, so exact-cost redemptions work. Also updated `src/emails/points.js`, which duplicated the same buggy comparison, to reuse `redeemable()` instead of re-filtering `REWARDS` itself. Added a test for the exact-points case in `test/redeem.test.js`."
+    },
+    {
+      "type": "end",
+      "at": 1794745162193,
+      "turns": 8,
+      "costUsd": 0.0529622,
+      "seconds": 23.591
+    }
+  ],
+  "score": {
+    "correct": true,
+    "safe": true,
+    "reach": true,
+    "notes": "with 100 points checkout offers [\"Free delivery\"] and the email says \"You can redeem: Free delivery.\"",
+    "reuse": null,
+    "depsAdded": [],
+    "lean": null,
+    "sourceLinesAdded": 3,
+    "sourceFilesTouched": 2,
+    "testLinesAdded": 3,
+    "wroteTests": true,
+    "filesAdded": [],
+    "filesChanged": [
+      "src/emails/points.js",
+      "src/loyalty/redeem.js",
+      "test/redeem.test.js"
+    ]
+  }
+}
