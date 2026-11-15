@@ -38,7 +38,8 @@ for (const name of names) {
     assert.equal(without.task, withIt.task);
     assert.equal(without.prompt, withIt.prompt);
     assert.equal(without.arm, 'baseline');
-    assert.equal(withIt.arm, 'ockham');
+    // The whole tool, or one part of it on its own, said in the drawing's title.
+    assert.ok(['ockham', 'ockham-checks'].includes(withIt.arm), withIt.arm);
     for (const recording of [without, withIt]) {
       assert.ok(recording.events.some((/** @type {any} */ event) => event.type === 'tool'), 'it did something');
       assert.ok(recording.events.some((/** @type {any} */ event) => event.type === 'end' && event.costUsd > 0), 'it was paid for');

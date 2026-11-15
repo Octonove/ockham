@@ -89,7 +89,8 @@ function column(recording, title) {
       lines.push({ kind: 'step', tool, text: target });
     } else if (event.type === 'ockham') {
       // What a hook of Ockham told the session at that point, read from its journal.
-      for (const line of wrap(`Ockham: ${event.text}`, CHARS, 2)) lines.push({ kind: 'ockham', text: line });
+      // What it says at the end is said to the agent, in its words: "Ockham, before you finish: ...".
+      for (const line of wrap(`Ockham${event.event === 'check' ? ',' : ':'} ${event.text}`, CHARS, 3)) lines.push({ kind: 'ockham', text: line });
     }
   }
   const said = recording.events.filter((/** @type {any} */ event) => event.type === 'says').pop()?.text ?? '';
@@ -105,7 +106,9 @@ function column(recording, title) {
 
 const TICKET_CHARS = Math.floor((WIDTH - 2 * MARGIN) / 9.1) - 8;
 const ticket = wrap(sides[0].prompt, TICKET_CHARS, 3);
-const columns = [column(sides[0], 'WITHOUT OCKHAM'), column(sides[1], 'WITH OCKHAM')];
+// A recording of an arm that switches parts of Ockham off says which part it shows.
+const TITLES = { ockham: 'WITH OCKHAM', 'ockham-checks': 'WITH ONLY ITS LOOK AT THE END' };
+const columns = [column(sides[0], 'WITHOUT OCKHAM'), column(sides[1], TITLES[/** @type {keyof typeof TITLES} */ (sides[1].arm)] ?? 'WITH OCKHAM')];
 const rows = Math.max(columns[0].lines.length, columns[1].lines.length);
 const top = 86 + ticket.length * LINE;
 // Both sides end on the same two rows, under the longer of them: the verdicts are read together.

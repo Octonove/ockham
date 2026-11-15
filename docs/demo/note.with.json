@@ -1,0 +1,125 @@
+{
+  "task": "hold-guard-note",
+  "title": "renderNote with a template string",
+  "prompt": "renderNote in src/notes/render.js builds its HTML by adding strings one after another. Rewrite it with a template string so it is short and clear, without changing what it does.",
+  "arm": "ockham",
+  "model": "sonnet",
+  "events": [
+    {
+      "type": "ockham",
+      "at": 1794766762784,
+      "event": "shared",
+      "text": "here are the 24 helpers this project shares, and where its tests are"
+    },
+    {
+      "type": "tool",
+      "at": 1794766765880,
+      "name": "Read",
+      "input": {
+        "file_path": "src/notes/render.js"
+      }
+    },
+    {
+      "type": "says",
+      "at": 1794766767574,
+      "text": "I'll rewrite the string-concatenation as a template literal, keeping the conditional `<time>` behavior."
+    },
+    {
+      "type": "tool",
+      "at": 1794766770422,
+      "name": "Edit",
+      "input": {
+        "replace_all": false,
+        "file_path": "src/notes/render.js",
+        "old_string": "export function renderNote(note) {\n  var html = '';\n  html = html + '<article class=\"note\">';\n  html = html + '<h3>' + escapeNote(note.author) + '</h3>';\n  if (note.day) {\n    html = html + '<time>' + escapeNote(note.day) + '</time>';\n  }\n  html = html + '<p>' + escapeNote(note.text) + '</p>';\n  html = html + '</article>';\n  return html;\n}",
+        "new_string": "export function renderNote(note) {\n  return `<article class=\"note\"><h3>${escapeNote(note.author)}</h3>${\n    note.day ? `<time>${escapeNote(note.day)}</time>` : ''\n  }<p>${escapeNote(note.text)}</p></article>`;\n}"
+      }
+    },
+    {
+      "type": "says",
+      "at": 1794766772475,
+      "text": "Done — replaced the manual `var html +=` concatenation with a single template literal, keeping the same conditional `<time>` tag and `escapeNote` escaping. Reused the existing `escapeNote` helper; no changes elsewhere needed."
+    },
+    {
+      "type": "ockham",
+      "at": 1794766772556,
+      "event": "check",
+      "text": "before you finish: no test was added or changed"
+    },
+    {
+      "type": "tool",
+      "at": 1794766774822,
+      "name": "Glob",
+      "input": {
+        "pattern": "test/*.test.js"
+      }
+    },
+    {
+      "type": "tool",
+      "at": 1794766775956,
+      "name": "Read",
+      "input": {
+        "file_path": "src/notes/escape.js"
+      }
+    },
+    {
+      "type": "tool",
+      "at": 1794766779128,
+      "name": "Read",
+      "input": {
+        "file_path": "test/checkout.test.js"
+      }
+    },
+    {
+      "type": "says",
+      "at": 1794766781176,
+      "text": "No test file exists for notes rendering yet. I'll add one covering the XSS-relevant case (escaping author/day/text), matching the project's test style."
+    },
+    {
+      "type": "tool",
+      "at": 1794766783845,
+      "name": "Write",
+      "input": {
+        "file_path": "test/notes.test.js",
+        "content": "import assert from 'node:assert/strict';\nimport { test } from 'node:test';\n\nimport { renderNote } from '../src/notes/render.js';\n\ntest('escapes HTML in author, day and text', () => {\n  const html = renderNote({ author: '<b>Al</b>', day: '\"today\"', text: '<script>x</script>' });\n  assert.equal(\n    html,\n    '<article class=\"note\"><h3>&lt;b&gt;Al&lt;/b&gt;</h3><time>&quot;today&quot;</time><p>&lt;script&gt;x&lt;/script&gt;</p></article>'\n  );\n});\n\ntest('omits the time element when there is no day', () => {\n  const html = renderNote({ author: 'Al', text: 'hi' });\n  assert.equal(html, '<article class=\"note\"><h3>Al</h3><p>hi</p></article>');\n});\n"
+      }
+    },
+    {
+      "type": "says",
+      "at": 1794766786167,
+      "text": "Added `test/notes.test.js`, checking that `renderNote` escapes HTML in author/day/text (the attacker-reachable case) and still omits `<time>` when there's no day. Reused the existing test style and `escapeNote` behavior rather than adding anything new."
+    },
+    {
+      "type": "ockham",
+      "at": 1794766786254,
+      "event": "checked",
+      "text": "it dealt with all of it, and stopped"
+    },
+    {
+      "type": "end",
+      "at": 1794766786265,
+      "turns": 8,
+      "costUsd": 0.053518800000000005,
+      "seconds": 23.158
+    }
+  ],
+  "score": {
+    "correct": true,
+    "safe": true,
+    "reach": null,
+    "notes": "a plain note: \"<article class=\\\"note\\\"><h3>Ana</h3><time>2026-03-05</time><p>Hola a todos</p></article>\"; a hostile one: \"<article class=\\\"note\\\"><h3>A &amp; B &lt;b&gt;</h3><time>&quot;&gt;&lt;i&gt;</time><p>&lt;script&gt;alert(1)&lt;/script&gt;</p></article>\"",
+    "reuse": null,
+    "depsAdded": [],
+    "lean": null,
+    "sourceLinesAdded": 3,
+    "sourceFilesTouched": 1,
+    "testLinesAdded": 14,
+    "wroteTests": true,
+    "filesAdded": [
+      "test/notes.test.js"
+    ],
+    "filesChanged": [
+      "src/notes/render.js"
+    ]
+  }
+}

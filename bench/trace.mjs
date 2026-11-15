@@ -94,12 +94,18 @@ child.stdout.on('data', (chunk) => {
 child.on('close', async () => {
   // What Ockham's hooks told the session is in its journal. Each entry goes where it
   // happened: a note about an edit comes right after that edit.
+  // What each check at the end is about, in a few words.
+  /** @type {Record<string, string>} */
+  const FOUND = { deps: 'package.json has a new dependency', twin: 'this defines what the project already has', copy: 'what you replaced is still in another file',
+    guard: 'a check this code made is gone', test: 'no test was added or changed', run: 'the tests have not been run', claim: 'the summary says the tests pass and none ran' };
   for (const said of readJournal({ OCKHAM_CACHE_DIR: ockhamCache(root) })) {
     // Each is what the hook said, cut down to a line: the session got the whole text.
     const text = said.event === 'shared' ? `here are the ${said.helpers} helpers this project shares${said.tests ? ', and where its tests are' : ''}`
       : said.event === 'copy' ? `what this change replaces is also in ${said.places.join(', ')}`
         : said.event === 'twin' ? `this change defines ${said.name}, and the project already has ${said.twin.replace('#', ': ')}`
-          : said.event === 'hint' ? `for this request the project already has ${said.symbols.map((/** @type {string} */ symbol) => symbol.split('#')[1]).join(', ')}` : null;
+          : said.event === 'hint' ? `for this request the project already has ${said.symbols.map((/** @type {string} */ symbol) => symbol.split('#')[1]).join(', ')}`
+            : said.event === 'check' ? `before you finish: ${said.checks.map((/** @type {string} */ check) => FOUND[check] ?? check).join('; ')}`
+              : said.event === 'checked' ? (said.left.length ? `it stopped with this still there: ${said.left.map((/** @type {string} */ check) => FOUND[check] ?? check).join('; ')}` : 'it dealt with all of it, and stopped') : null;
     if (!text) continue;
     events.push({ type: 'ockham', at: Date.parse(said.at), event: said.event, text });
     console.log(`OCKHAM ${text}`);

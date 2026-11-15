@@ -25,7 +25,7 @@ Ockham: what this project already has, so that you do not have to look for it. T
 - isEmail(text) in src/validation/email.js - Is this something we can send mail to?
 - withRetry(fn, { tries = 3, delayMs = 100 } = {}) in src/net/retry.js - Call fn until it succeeds, at most `tries` times, waiting a little longer each time.
 
-Ockham: this project's tests are in test/ (2 of them), written with node:test; `npm test` runs `node --test test/`. A new test goes with them, in their style. So that you do not have to open one to see that style, this is how test/checkout.test.js begins:
+Ockham: this project's tests are in test/ (2 of them), written with node:test; `npm test` runs `node --test test/`. If you add a test, it goes with them, in their style. So that you do not have to open one to see that style, this is how test/checkout.test.js begins:
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
@@ -345,7 +345,7 @@ Reuse was already solved by the rules when this phase began, so the phase could 
 
 ## Open
 
-- **Where the tests are, said as a fact and not as an order.** "A new test goes with them" makes a session with no rules write one every time. To be reworded and measured with the rules on, where it has cost nothing so far.
+- **Where the tests are, said as a fact and not as an order.** "A new test goes with them" made a session with no rules write one every time. Done in phase 4: the sentence now starts "If you add a test", and with the index alone no session of 18 wrote one, where 18 of 18 had ([checks.md](checks.md)).
 - **An open redirect that gets through three times in five.** `hold-safe-next`, with the rules or without. For a rule, or for the checks of phase 4.
 - **The copies the finder still does not see.** A fix that only adds to the line; the same number in another call. Ten of the 87 saved misses.
 - **Reports of checks that were not made.** Still there with the rules alone. Phase 4.
