@@ -1,0 +1,9 @@
+{
+  "title": "Eighteen is old enough",
+  "kind": "reach",
+  "wave": 4,
+  "heldOut": true,
+  "needsTest": true,
+  "badFails": "reach",
+  "prompt": "Bug: someone who turned 18 last month cannot open an account: the sign-up form says they are too young. Adults are 18 or older. Fix it."
+}

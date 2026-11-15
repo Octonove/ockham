@@ -21,6 +21,27 @@ export function findClaude(env = process.env) {
   return 'claude';
 }
 
+// What each Ockham arm switches, on top of the plugin as it ships.
+const OCKHAM_ARMS = {
+  ockham: {},
+  'ockham-rules': { OCKHAM_INDEX: 'off' },                    // the rules alone: what was measured before there was an index
+  'ockham-index': { OCKHAM_RULES: 'off' },                    // the index alone
+  // The compact ruleset is what subagents get; this arm gives it to the session, to measure it.
+  'ockham-compact': { OCKHAM_RULES: 'compact' },
+};
+// What an arm can switch on or off by name: ockham+hints, ockham-index+nofacts, ockham+notests.
+const EXTRAS = { facts: { OCKHAM_FACTS: 'on' }, nofacts: { OCKHAM_FACTS: 'off' }, hints: { OCKHAM_HINTS: 'on' }, nohints: { OCKHAM_HINTS: 'off' }, notests: { OCKHAM_TESTS: 'off' } };
+
+/**
+ * An arm's name taken apart: "ockham-index+facts" is the arm ockham-index with facts on.
+ * @param {string} arm
+ * @returns {{ base: string, extras: string[] }}
+ */
+export function armParts(arm) {
+  const [base, ...extras] = arm.split('+');
+  return { base, extras };
+}
+
 /**
  * The plugin an arm loads. The baseline loads none.
  * @param {string} arm
@@ -28,8 +49,14 @@ export function findClaude(env = process.env) {
  * @returns {string[]}
  */
 export function armArgs(arm, env = process.env) {
+  const { base, extras } = armParts(arm);
+  if (base in OCKHAM_ARMS) {
+    const unknown = extras.find((extra) => !(extra in EXTRAS));
+    if (unknown) throw new Error(`Unknown part of an arm: +${unknown}`);
+    return ['--plugin-dir', REPO];
+  }
+  if (extras.length) throw new Error(`Only the Ockham arms take parts: ${arm}`);
   if (arm === 'baseline') return [];
-  if (arm === 'ockham' || arm === 'ockham-compact') return ['--plugin-dir', REPO];
   if (arm === 'ponytail') {
     const dir = env.OCKHAM_BENCH_PONYTAIL_DIR;
     if (!dir || !existsSync(join(dir, '.claude-plugin', 'plugin.json'))) {
@@ -50,7 +77,8 @@ export function cellEnv(env = process.env) {
   /** @type {Record<string, string>} */
   const out = {};
   for (const [key, value] of Object.entries(env)) {
-    if (value === undefined || /^(CLAUDECODE$|CLAUDE_|ANTHROPIC_|OCKHAM_(CANARY|SUBAGENT_CANARY|RULES|LANG)$)/.test(key)) continue;
+    // Nothing of Ockham's own settings comes in from outside either, except what configures the benchmark itself.
+    if (value === undefined || /^(CLAUDECODE$|CLAUDE_|ANTHROPIC_|OCKHAM_(?!BENCH_))/.test(key)) continue;
     out[key] = value;
   }
   out.CLAUDE_CODE_DISABLE_CLAUDE_MDS = '1';
@@ -68,10 +96,17 @@ export function cellEnv(env = process.env) {
  */
 export function armEnv(arm, workRoot) {
   if (arm === 'ponytail') return { XDG_CONFIG_HOME: join(workRoot, 'xdg') };
-  // The compact ruleset is what subagents get; this arm gives it to the session, to measure it.
-  if (arm === 'ockham-compact') return { OCKHAM_RULES: 'compact' };
-  return {};
+  const { base, extras } = armParts(arm);
+  if (!(base in OCKHAM_ARMS)) return {};
+  /** @type {Record<string, string>} */
+  const env = { ...OCKHAM_ARMS[/** @type {keyof typeof OCKHAM_ARMS} */ (base)] };
+  for (const extra of extras) Object.assign(env, EXTRAS[/** @type {keyof typeof EXTRAS} */ (extra)]);
+  // Ockham's index and journal go to the run's own folder, not to the user's cache.
+  return { ...env, OCKHAM_CACHE_DIR: ockhamCache(workRoot) };
 }
+
+/** @param {string} workRoot */
+export const ockhamCache = (workRoot) => join(workRoot, 'ockham-cache');
 
 /**
  * The flags every cell gets. User settings are left out (no user hooks, plugins or

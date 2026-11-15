@@ -16,7 +16,8 @@
     "test": "node test/run.mjs",
     "typecheck": "tsc -p tsconfig.json",
     "bench:selftest": "node bench/run.mjs --selftest",
-    "hook:live": "node bench/hook-live.mjs"
+    "hook:live": "node bench/hook-live.mjs",
+    "bench:index": "node bench/index-check.mjs"
   },
   "devDependencies": {
     "@types/node": "20.19.43",

@@ -1,0 +1,9 @@
+{
+  "title": "A coupon typed in small letters",
+  "kind": "reach",
+  "wave": 4,
+  "heldOut": true,
+  "needsTest": true,
+  "badFails": "reach",
+  "prompt": "Bug: the coupon SUMMER10 is refused at checkout when a customer types summer10. A code is the same whatever its capitals. Fix it."
+}

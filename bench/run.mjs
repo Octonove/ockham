@@ -12,18 +12,39 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { armEnv, cellEnv, runClaude } from './lib/agent.mjs';
+import { resolve } from 'node:path';
+
+import { armEnv, armParts, cellEnv, ockhamCache, runClaude } from './lib/agent.mjs';
 import { composeSeed } from './lib/project.mjs';
 import { report } from './lib/report.mjs';
 import { fails, passesAll, scoreWorkspace } from './lib/score.mjs';
 import { loadTasks } from './lib/tasks.mjs';
 import { hushStatusLineNote, restoreTraces, snapshotTraces } from './lib/traces.mjs';
 import { copyTree } from './lib/workspace.mjs';
-import { rules } from '../src/session.mjs';
+import { readJournal } from '../src/journal.mjs';
+import { rulesFor } from '../src/session.mjs';
 
 const RUNS_DIR = fileURLToPath(new URL('./runs/', import.meta.url));
-// The arms that load Ockham, and the size of ruleset each gives the session.
-const RULESET_OF = { ockham: 'full', 'ockham-compact': 'compact' };
+
+/** @param {string} path */
+const samePath = (path) => (process.platform === 'win32' ? resolve(path).toLowerCase() : resolve(path));
+
+/**
+ * What Ockham's index told the session that worked in `work`, read from the run's journal.
+ * @param {string} workRoot
+ * @param {string} work
+ */
+function indexSaid(workRoot, work) {
+  const mine = readJournal({ OCKHAM_CACHE_DIR: ockhamCache(workRoot) }).filter((event) => typeof event.root === 'string' && samePath(event.root) === samePath(work));
+  if (!mine.length) return null;
+  return {
+    helpers: mine.find((event) => event.event === 'shared')?.helpers ?? 0,
+    tests: mine.some((event) => event.event === 'shared' && event.tests),
+    hints: mine.filter((event) => event.event === 'hint').flatMap((event) => event.symbols ?? []),
+    twins: mine.filter((event) => event.event === 'twin').map((event) => `${event.file}#${event.name} ~ ${event.twin}`),
+    copies: mine.filter((event) => event.event === 'copy').flatMap((event) => (event.places ?? []).map((/** @type {string} */ place) => `${event.file} -> ${place}`)),
+  };
+}
 
 /** @param {string[]} argv */
 function parseArgs(argv) {
@@ -126,7 +147,8 @@ async function run(args) {
   /** @type {Record<string, { hash: string, words: number }>} */
   const rulesets = {};
   for (const arm of arms) {
-    const text = arm in RULESET_OF ? rules('en', RULESET_OF[/** @type {keyof typeof RULESET_OF} */ (arm)]) : '';
+    // The very text the arm's session is given: its size and what the arm switched off in it.
+    const text = armParts(arm).base.startsWith('ockham') ? rulesFor(armEnv(arm, workRoot), 'full') : '';
     if (text) rulesets[arm] = { hash: createHash('sha256').update(text).digest('hex').slice(0, 10), words: text.split(/\s+/).length };
   }
 
@@ -147,7 +169,7 @@ async function run(args) {
       copyTree(seed, work);
       const agent = await runClaude({ prompt: task.prompt, cwd: work, arm, model, maxUsd, env: { ...cellEnv(), ...armEnv(arm, workRoot) } });
       const score = agent.ok ? await scoreWorkspace(task, seed, work) : null;
-      results.push({ task: task.id, kind: task.kind, needsTest: task.needsTest, arm, n, seed, work, agent, score });
+      results.push({ task: task.id, kind: task.kind, needsTest: task.needsTest, arm, n, seed, work, agent, score, index: indexSaid(workRoot, work) });
       // Saved after every cell: a run that is cut short keeps the sessions it paid for.
       writeFileSync(join(outDir, 'cells.json'), JSON.stringify({ stamp, model, arms, runs, alone, rulesets, workRoot, unfinished: true, results }, null, 2));
       const verdict = score ? `${score.correct ? 'correct' : 'WRONG'}${score.safe ? '' : ' (broke on input the ticket left out)'}` : `agent failed: ${agent.error}`;

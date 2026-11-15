@@ -72,6 +72,22 @@ export function report(data) {
       '',
     ].join(' | ').trim());
   }
+  // What the index said, for the arms that have one.
+  const told = data.arms.filter((arm) => done.some((cell) => cell.arm === arm && cell.index));
+  if (told.length) {
+    lines.push('', '## What the index said', '', '| arm | told the shared helpers at the start | told where the tests are | got something for its request | warned of a second version | pointed to a copy of what it replaced |', '|---|--:|--:|--:|--:|--:|');
+    for (const arm of told) {
+      const cells = done.filter((cell) => cell.arm === arm);
+      const said = cells.filter((cell) => cell.index);
+      const count = (/** @type {(index: any) => boolean} */ has) => share(said.filter((cell) => has(cell.index)).length, cells.length);
+      lines.push(`| ${arm} | ${count((index) => index.helpers > 0)} | ${count((index) => index.tests)} | ${count((index) => index.hints.length > 0)} | ${count((index) => index.twins.length > 0)} | ${count((index) => (index.copies ?? []).length > 0)} |`);
+    }
+    // Every warning and every pointer, with whether the session then passed: a pointer to a place that needed nothing is a false one.
+    for (const cell of done.filter((one) => one.index?.twins.length || one.index?.copies?.length)) {
+      const reached = cell.score.reach === false ? 'still missed a place' : cell.score.reach === true ? 'reached every place' : 'no place to reach in this task';
+      lines.push('', `- ${cell.task} / ${cell.arm} #${cell.n}: ${[...cell.index.twins, ...(cell.index.copies ?? [])].join('; ')} (${reached})`);
+    }
+  }
   lines.push('', '## Per kind of task', '', 'The share of sessions that got right the one thing their task probes.', '', `| probes | what counts | ${data.arms.join(' | ')} |`, `|---|---|${data.arms.map(() => '--:').join('|')}|`);
   for (const kind of [...new Set(data.results.map((cell) => cell.kind))]) {
     const probe = PROBES[kind];

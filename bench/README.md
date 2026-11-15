@@ -26,8 +26,14 @@ The fourth point is a limit worth knowing: this measures what an agent writes, n
 |---|---|
 | `baseline` | nothing |
 | `ponytail` | a checkout of ponytail, from `OCKHAM_BENCH_PONYTAIL_DIR` |
-| `ockham` | this repository |
-| `ockham-compact` | this repository, with the compact ruleset given to the session: the text subagents get, measured on its own |
+| `ockham` | this repository, as it ships: the rules and the index |
+| `ockham-rules` | the rules alone, with the index off |
+| `ockham-index` | the index alone, with the rules off |
+| `ockham-compact` | the compact ruleset given to the session: the text subagents get, measured on its own |
+
+An arm can switch a part on or off by name. `ockham+hints` brings up what the project has for the request, which is off as shipped; `ockham+nofacts` leaves out where the tests are, which is on; `ockham+notests` leaves the rule about tests out of the ruleset. They go with any Ockham arm: `ockham-index+nofacts` is the list of helpers and nothing else. A run records the hash of the ruleset each arm was given, so `ockham+notests` shows as a text of its own.
+
+An Ockham arm keeps its index and its journal in the run's own folder (`OCKHAM_CACHE_DIR`), never in the user's cache. After each session the run reads the journal and records what the index said to it: the report has a table of that, and lists every warning with whether the session then passed.
 
 Arms alternate task by task, so time of day and model drift hit them alike.
 
@@ -68,6 +74,8 @@ Optional fields of `task.json`: `reuse` (the file and the patterns that show the
 
 `node bench/run.mjs --selftest` lays each reference over its seed, inside the project and on its own, and fails unless the instruments tell them apart. It calls no model and runs in CI.
 
+`node bench/index-check.mjs` asks what the index would say on every task, also without a model: whether the helper a task should reuse is in the list a session gets at its start, what the request would bring up and how much of that is where the good solution works, and whether a reference that fixes one place of two is told where the other is. With `--runs <folders>` it puts the last question to what real sessions left behind: of the sessions that fixed one place and left another, how many would have been pointed to it, and how many of the others would have been bothered. A mechanism is tried here first, where a mistake costs nothing.
+
 Two tasks must not write the same file, apart from `package.json`: their seeds and good references are laid over one another to make the project.
 
 ## The tasks
@@ -81,12 +89,13 @@ Two tasks must not write the same file, apart from `package.json`: their seeds a
 | guard | `guard-discount` | makes a function shorter by dropping the checks that looked like clutter |
 | size | `size-quiet`, `size-csv`, `size-timeout` | builds a framework for a change of three lines |
 
-Those eighteen are round 1. Ten more came with the rules:
+Those eighteen are round 1. Ten more came with the rules, and three with the index:
 
 | Round | Tasks | What they are for |
 |---|---|---|
 | 2, held out | `hold-reach-phone`, `hold-reach-upload`, `hold-cut-highlight`, `hold-cut-url`, `hold-reuse-date`, `hold-test-split` | written after rules v0 were frozen, never used to change a rule. `hold-test-split` is of a kind of its own, `test`: does the fix leave a test behind |
 | 3 | `hold-reach-points`, `hold-reach-sort`, `hold-cut-labels`, `hold-cut-suppliers` | two bug fixes whose logic is copied in another module, and two readers of hand-made files where real input costs lines: the two shapes the reference tool failed on. They were held out for rules v0, and what they showed was then used to change the rules, so they are tuning tasks now. They keep their names: the saved runs know them by those |
+| 4, held out | `hold-copy-age`, `hold-copy-percent`, `hold-copy-coupon` | three bug fixes whose logic is copied in another module, written before the index's copy finder was run on them, with what it was expected to do on each written down first: one copy has the shape the finder was built on, one has other names for its variables, and in one the fix only adds to the line. The last two are where it was expected to say nothing |
 
 **Tuning tasks and held-out tasks.** Rules are adjusted on tuning tasks and proved on held-out ones (`"heldOut": true`), which are written after a ruleset is frozen and run once. A held-out task that has been looked at to change a rule stops being proof: it becomes a tuning task, and new ones are written.
 
@@ -98,13 +107,14 @@ node bench/run.mjs --arms baseline,ponytail --runs 1 --model sonnet [--tasks a,b
 node bench/run.mjs --rescore bench/runs/<stamp>
 node bench/run.mjs --combine bench/runs/<stamp>,bench/runs/<stamp> [--out report.md]
 node bench/hook-live.mjs
-node bench/trace.mjs <task> [arm] [--model sonnet]
+node bench/trace.mjs <task> [arm] [--model sonnet] [--save recording.json]
+node bench/index-check.mjs [--verbose] [--runs bench/runs/<stamp>,bench/runs/<stamp>]
 ```
 
 With no choice of tasks a run takes the tuning tasks; `--held-out` takes the held-out ones and `--all` both.
 
 A run writes `bench/runs/<stamp>/cells.json` and `report.md`. The workspaces are kept, so a changed measure is recomputed with `--rescore` instead of paying for the sessions again, and `--combine` adds up runs of the same arms into one report.
 
-`hook-live.mjs` is the contract test of the hooks on a real session: it sets a random word that only the SessionStart hook can pass on, and asks the model for it, with and without the plugin. Then it does the same for a subagent, with a second word that the session itself is never given: if the answer carries it, the SubagentStart hook reached the subagent. It needs a logged-in Claude Code and spends a little quota, so it is not part of `npm test`.
+`hook-live.mjs` is the contract test of the hooks on a real session: it sets a random word that only the SessionStart hook can pass on, and asks the model for it, with and without the plugin. Then it does the same for a subagent, with a second word that the session itself is never given: if the answer carries it, the SubagentStart hook reached the subagent. The index has no word to pass on, so for it the test makes a small project with a helper of a random name and asks the model for what only the index could have told it: the name of that helper, the file that already has it when a second one is written, and the file with the other copy when a copied line is replaced. It needs a logged-in Claude Code and spends a little quota, so it is not part of `npm test`.
 
-`trace.mjs` runs one cell and prints every tool call and every message of the agent. A run keeps no transcript, so when a rule is not followed this is how to see why. It is what showed that a session can report a search it never ran: the closing message said so, and no call stood behind it.
+`trace.mjs` runs one cell and prints every tool call and every message of the agent, and then what the hidden check made of the result. A run keeps no transcript, so when a rule is not followed this is how to see why. It is what showed that a session can report a search it never ran, and that a session told where everything is stops searching and no longer comes across the copy of a bug. `--save` keeps the trace as JSON; the README's animation is drawn from two such files.
