@@ -331,7 +331,7 @@ The bar in the [plan](plan.md): "Reuse goes up on the reuse tasks, with almost n
 | Cost | A sixth less than the rules alone on the tasks it was developed on. The same on the nine tasks of the first validation. A twentieth less on the six of the second, and a sixth less time. No form of the list moves it |
 | Not in the plan | The copy of a fixed bug, which no wording of a rule could make an agent look for, is found by a program at the moment of the edit: a copy of the same shape, with the same names or with others |
 
-Reuse was already solved by the rules when this phase began, so the phase could not show much on its own bar. What it leaves is a reuse that no longer depends on the agent searching, a finder of copies, sessions that are a sixth quicker, and a cost that is no higher. Whether that closes it is the owner's call.
+Reuse was already solved by the rules when this phase began, so the phase could not show much on its own bar. What it leaves is a reuse that no longer depends on the agent searching, a finder of copies, sessions that are a sixth quicker, and a cost that is no higher. The owner closed the phase on 15 November 2026 with that on record.
 
 ## Limits
 

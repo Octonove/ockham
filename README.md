@@ -4,7 +4,7 @@
 
 Ockham makes a coding agent write only the code a task needs, reuse what the codebase already has, and check what it wrote before it says "done". For Claude Code and Codex.
 
-> **Status: private, in development. Phases 0 to 2 of 9 are done: the foundations, the benchmark and the rules ([docs/rules.md](docs/rules.md)). Phase 3, the index, is built and measured ([docs/index.md](docs/index.md)).**
+> **Status: private, in development. Phases 0 to 3 of 9 are done: the foundations, the benchmark, the rules ([docs/rules.md](docs/rules.md)) and the index ([docs/index.md](docs/index.md)). Phase 4, the checks at the end of a task, is being built.**
 > Installed as a Claude Code plugin, Ockham today gives a session its rules when it starts, with a list of what the project already has; tells it where the other copy is when it replaces a line that another file has too; and gives every subagent a compact copy of the rules. The checks at the end of a task do not exist yet. The rule of the project is that no rule or mechanism ships before a measurement says it helps, so the benchmark came first.
 
 ![One ticket given to a coding agent without Ockham and with it](docs/demo/points.svg)
