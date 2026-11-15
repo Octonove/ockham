@@ -2,7 +2,6 @@
   "title": "How long the call lasted",
   "kind": "reuse",
   "wave": 5,
-  "heldOut": true,
   "needsTest": false,
   "badFails": "correct",
   "reuse": {

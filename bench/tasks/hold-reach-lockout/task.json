@@ -2,7 +2,6 @@
   "title": "Five wrong passwords lock the account",
   "kind": "reach",
   "wave": 5,
-  "heldOut": true,
   "needsTest": true,
   "badFails": "reach",
   "prompt": "Bug: an account is meant to lock after 5 wrong passwords in a row, but people get a sixth try at signing in. Fix it."

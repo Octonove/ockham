@@ -1,0 +1,9 @@
+{
+  "title": "A voucher is good on the day it expires",
+  "kind": "reach",
+  "wave": 6,
+  "heldOut": true,
+  "needsTest": true,
+  "badFails": "reach",
+  "prompt": "Bug: a voucher that expires today is refused at checkout. A voucher is good up to and including the day it expires. Fix it."
+}

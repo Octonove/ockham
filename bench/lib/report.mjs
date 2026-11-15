@@ -88,6 +88,22 @@ export function report(data) {
       lines.push('', `- ${cell.task} / ${cell.arm} #${cell.n}: ${[...cell.index.twins, ...(cell.index.copies ?? [])].join('; ')} (${reached})`);
     }
   }
+  // What the checks at the end did, for the arms whose sessions they looked at.
+  const checked = data.arms.filter((arm) => done.some((cell) => cell.arm === arm && cell.index?.checks));
+  if (checked.some((arm) => done.some((cell) => cell.arm === arm && cell.index.checks.length))) {
+    lines.push('', '## What the checks at the end did', '', '| arm | sessions stopped once | of them, left nothing of it behind | stopped although nothing was wrong |', '|---|--:|--:|--:|');
+    for (const arm of checked) {
+      const cells = done.filter((cell) => cell.arm === arm);
+      const stopped = cells.filter((cell) => cell.index?.checks?.length);
+      // Nothing wrong: every hidden check passes and a test is there where the logic needs one. Stopped all the same is a false stop.
+      const clean = (/** @type {any} */ cell) => cell.score.correct && cell.score.safe && cell.score.reach !== false && cell.score.reuse !== false && cell.score.depsAdded.length === 0;
+      const needless = stopped.filter((cell) => clean(cell) && !cell.index.checks.some((/** @type {string} */ check) => check !== 'test') && !cell.needsTest);
+      lines.push(`| ${arm} | ${share(stopped.length, cells.length)} | ${share(stopped.filter((cell) => cell.index.left && !cell.index.left.length).length, stopped.length)} | ${share(needless.length, cells.length)} |`);
+    }
+    for (const cell of done.filter((one) => one.index?.checks?.length)) {
+      lines.push('', `- ${cell.task} / ${cell.arm} #${cell.n}: stopped for ${cell.index.checks.join(', ')}; ${cell.index.left === null ? 'did not come back' : cell.index.left.length ? `still there: ${cell.index.left.join(', ')}` : 'nothing of it left'}`);
+    }
+  }
   lines.push('', '## Per kind of task', '', 'The share of sessions that got right the one thing their task probes.', '', `| probes | what counts | ${data.arms.join(' | ')} |`, `|---|---|${data.arms.map(() => '--:').join('|')}|`);
   for (const kind of [...new Set(data.results.map((cell) => cell.kind))]) {
     const probe = PROBES[kind];

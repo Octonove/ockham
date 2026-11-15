@@ -1,0 +1,9 @@
+{
+  "title": "The warehouse takes 500 rows at a time",
+  "kind": "dependency",
+  "wave": 6,
+  "heldOut": true,
+  "needsTest": false,
+  "badFails": "deps",
+  "prompt": "The warehouse rejects a request with more than 500 rows, and the nightly sync sends everything in one. Make pushRows in src/sync/push.js send the rows in requests of 500 at the most, in order."
+}

@@ -1,0 +1,8 @@
+{
+  "title": "A roster saved on Windows",
+  "kind": "test",
+  "wave": 6,
+  "needsTest": true,
+  "badFails": "correct",
+  "prompt": "Bug: when the roster file was saved on a Windows computer, every pupil's name comes out with a stray character at its end and the class lists print badly. Windows ends each line with a carriage return and a line feed, not just a line feed. Fix it."
+}

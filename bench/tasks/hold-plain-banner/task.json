@@ -1,0 +1,10 @@
+{
+  "title": "Free delivery from 40",
+  "kind": "size",
+  "wave": 6,
+  "heldOut": true,
+  "needsTest": false,
+  "budgetLines": 2,
+  "badFails": "correct",
+  "prompt": "Free delivery now starts at 40 € instead of 50 €."
+}

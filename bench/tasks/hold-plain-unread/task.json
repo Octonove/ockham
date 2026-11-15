@@ -1,0 +1,10 @@
+{
+  "title": "How many messages are unread",
+  "kind": "size",
+  "wave": 6,
+  "heldOut": true,
+  "needsTest": false,
+  "budgetLines": 3,
+  "badFails": "correct",
+  "prompt": "The inbox page needs to show how many messages are unread. Make listInbox in src/inbox/list.js return that number as `unread`, next to `messages`."
+}

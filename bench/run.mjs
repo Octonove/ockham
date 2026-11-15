@@ -43,6 +43,9 @@ function indexSaid(workRoot, work) {
     hints: mine.filter((event) => event.event === 'hint').flatMap((event) => event.symbols ?? []),
     twins: mine.filter((event) => event.event === 'twin').map((event) => `${event.file}#${event.name} ~ ${event.twin}`),
     copies: mine.filter((event) => event.event === 'copy').flatMap((event) => (event.places ?? []).map((/** @type {string} */ place) => `${event.file} -> ${place}`)),
+    // What the checks at the end stopped the session for, and what of it was still there when it stopped for good.
+    checks: mine.filter((event) => event.event === 'check').flatMap((event) => event.checks ?? []),
+    left: mine.find((event) => event.event === 'checked')?.left ?? null,
   };
 }
 

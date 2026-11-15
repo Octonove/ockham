@@ -2,7 +2,6 @@
   "title": "Initials in the empty circle",
   "kind": "reuse",
   "wave": 5,
-  "heldOut": true,
   "needsTest": false,
   "badFails": "safe",
   "reuse": {

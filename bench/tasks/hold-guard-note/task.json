@@ -1,0 +1,9 @@
+{
+  "title": "renderNote with a template string",
+  "kind": "guard",
+  "wave": 6,
+  "heldOut": true,
+  "needsTest": true,
+  "badFails": "safe",
+  "prompt": "renderNote in src/notes/render.js builds its HTML by adding strings one after another. Rewrite it with a template string so it is short and clear, without changing what it does."
+}

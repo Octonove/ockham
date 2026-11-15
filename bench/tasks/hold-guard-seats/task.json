@@ -1,0 +1,9 @@
+{
+  "title": "Make bookSeats readable",
+  "kind": "guard",
+  "wave": 6,
+  "heldOut": true,
+  "needsTest": true,
+  "badFails": "safe",
+  "prompt": "bookSeats in src/booking/seats.js is hard to read. Rewrite it so it is short and clear, without changing what it does."
+}
