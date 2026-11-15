@@ -4,8 +4,8 @@
 
 Ockham makes a coding agent write only the code a task needs, reuse what the codebase already has, and check what it wrote before it says "done". For Claude Code and Codex.
 
-> **Status: private, in development. Phases 0 and 1 of 9 are done; the rules are next.**
-> Nothing here changes how an agent behaves yet. The rule of the project is that no rule or mechanism ships before a measurement says it helps, so the benchmark came first.
+> **Status: private, in development. Phases 0 and 1 of 9 are done. Phase 2, the rules, is written and measured; whether it has met its bar is an open call ([docs/rules.md](docs/rules.md)).**
+> Installed as a Claude Code plugin, Ockham today gives a session its rules when it starts, and gives every subagent a compact copy. The index and the checks do not exist yet. The rule of the project is that no rule or mechanism ships before a measurement says it helps, so the benchmark came first.
 
 ## Why
 
@@ -39,9 +39,11 @@ The demos of each step will be recorded from the working tool as its phases land
 | Repository, tests on Linux, Windows and macOS | Done |
 | Plugin skeleton for Claude Code; its session hook is proven on a live session | Done |
 | Benchmark harness: isolated headless sessions, hidden checks, self-test of every instrument | Done |
-| Benchmark tasks | 18 |
+| Benchmark tasks | 28: 22 to tune the rules on, 6 held out to prove them |
 | Baseline (no tool, and ponytail as the reference arm) | Measured: [docs/baseline.md](docs/baseline.md) |
-| Rules, index, end-of-task checks, review, memory, band | Phases 2 to 7 |
+| Rules: seven of them, in two sizes, in English and Spanish | Version 1, measured: [docs/rules.md](docs/rules.md) |
+| The rules reach the session and its subagents | Proven on live sessions, with a word only each hook knows |
+| Index, end-of-task checks, review, memory, band | Phases 3 to 7 |
 
 The plan, with what each phase delivers and how it is checked, is in [docs/plan.md](docs/plan.md). The decisions behind it are in [docs/decisions.md](docs/decisions.md).
 
@@ -59,18 +61,44 @@ The plan, with what each phase delivers and how it is checked, is in [docs/plan.
 
 With no tool the agent rewrites what the project already has. With a rule to do less it reuses everything, and then leaves out part of the job and reports the omission as a saving: a CSV export with no quoting, five times out of five. Ockham has to do the first without the second.
 
+## What the rules do
+
+Seven rules, 314 words. The first thing they say is which half wins: "the smallest change that does the whole job. If they pull apart, the whole job wins."
+
+On the 22 tasks they were tuned on, five sessions a task ([docs/rules.md](docs/rules.md)):
+
+| Measure | No tool | ponytail | Ockham |
+|---|--:|--:|--:|
+| Passed every hidden check | 87/110 | 86/110 | 105/110 |
+| Held on input the ticket left out | 103/110 | 100/110 | 110/110 |
+| Reached every place the bug was in | 14/25 | 11/25 | 20/25 |
+| Reused what the project already had | 16/25 | 25/25 | 25/25 |
+| Left a test where the logic needs one | 0/70 | 7/70 | 60/70 |
+| Source lines added per session, mean (median) | 5.8 (3) | 3.8 (3) | 6.3 (3) |
+| Cost per session | 0.030 $ | 0.036 $ | 0.054 $ |
+
+On six tasks the rules never saw, they lose nothing; those tasks are too easy to show more. On four others, written after the first version was frozen and shaped like ponytail's two failures, that version held on real input in 20 sessions of 20 against ponytail's 15.
+
+What the rules do not do:
+
+- **Find the copy of a bug in another module.** In one task, no wording made the agent look for it, and one wording made it say that it had: four sessions of five closed with a search or a check that the project contradicts, and three of those had run nothing. That check is a job for a program, not for a prompt, and it is what phase 4 is for.
+- **Come free.** Ockham costs half as much again as ponytail and takes two thirds longer. Most of that is the tests it leaves behind.
+- **Write as little as ponytail.** The same at the median, 1.2 lines a session more on the tasks both solve.
+
 ## The benchmark
 
 Every cell is one headless agent session on a fresh copy of a project of some forty source files. The agent gets a ticket and nothing else. What it leaves behind is scored by a check it never saw.
 
 ```bash
 npm run bench:selftest                                             # prove the instruments, no model called
-npm run hook:live                                                  # prove on a real session that the hook reaches the model
+npm run hook:live                                                  # prove on real sessions that the hooks reach the model and its subagents
 node bench/run.mjs --arms baseline --runs 1 --model sonnet         # one pass without any tool
-OCKHAM_BENCH_PONYTAIL_DIR=/path/to/ponytail node bench/run.mjs --arms baseline,ponytail --runs 5
+OCKHAM_BENCH_PONYTAIL_DIR=/path/to/ponytail node bench/run.mjs --arms baseline,ponytail,ockham --runs 5
+node bench/run.mjs --held-out --arms ockham --runs 5               # the tasks no rule was tuned on
+node bench/trace.mjs hold-reach-points                             # one session, every call it makes
 ```
 
-Each of the 18 tasks probes one thing a careless change gets wrong:
+Each of the first 18 tasks probes one thing a careless change gets wrong. Ten more came with the rules: six held out, and four shaped like the reference tool's failures.
 
 | Probes | Tasks | A careless change |
 |---|--:|---|

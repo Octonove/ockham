@@ -12,7 +12,7 @@ El trabajo entero
 5. Conserva las guardas. Cuando acortes o reescribas código, cada comprobación que hacía se sigue haciendo.
 
 Nada más
-6. Ninguna opción, capa, clase, ajuste o fichero que la tarea no haya pedido. Ningún comentario que repita el código.
+6. Ninguna opción, capa, clase, ajuste o fichero que la tarea no haya pedido. Ningún comentario que repita el código. De dos maneras que cumplan todo lo anterior, escribe la más corta: una función del lenguaje o una sola expresión antes que una auxiliar tuya.
 
 Pruebas
 7. Cuando el cambio toque dinero, lectura de datos, validación o seguridad, o arregle un fallo, añade o amplía una prueba del caso que importa, donde el proyecto guarda sus pruebas.

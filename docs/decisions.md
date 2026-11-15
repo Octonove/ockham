@@ -37,3 +37,15 @@ A deliberate shortcut is marked in the code with its limit and when to revisit i
 ## D9. A new private repository; own text and own code
 
 ponytail is MIT and can be studied, but its text is not pasted here: Ockham's is written from its own measurements. The licence is decided if it is ever published.
+
+## D10. No rule asks the agent to report its own checks
+
+The ruleset says what to do, and never asks the agent to state that it searched, verified or checked something. Left out: a line in the closing report such as "say what you searched for and what you found". It was tried for rule 4 and it produced the statement more often than the search: of five sessions four missed the second place, and all four closed with a search or a check that the project contradicts ([rules.md](rules.md)). A rule like that turns a silent omission into a false claim, which is worse than no rule. What has to be verified is verified by a hook that runs the check and shows the result. It costs waiting: until the checks of phase 4 exist, a copy of a fixed bug in another module is found only when the agent's first search happens to show it. Reopened if a model is measured reporting only what it did.
+
+## D11. Subagents get a compact ruleset of their own
+
+What a session is told when it starts does not reach the agents it hands work to. A SubagentStart hook gives each of them the same seven rules in half the words. Left out: giving them the full text (their tasks are narrower and their context is their budget) and giving them nothing (which is what happens by default). It costs a second text to keep in step with the first; a test fails if their rule numbers differ. Reopened if the benchmark's compact arm falls behind the full one.
+
+## D12. Tasks have rounds, and a held-out task that is looked at stops being proof
+
+A task's project is built from the tasks of its own round and the earlier ones, so adding tasks never changes what an older measurement ran on. Rules are tuned on tuning tasks and proved on held-out ones; once the failures of a held-out task are used to change a rule, it becomes a tuning task and new ones are written. Left out: one growing pool of tasks, where every addition would quietly change the baseline, and reusing the same held-out tasks after tuning on them. It costs writing new tasks for every version of the rules.

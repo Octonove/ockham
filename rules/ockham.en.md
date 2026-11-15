@@ -12,7 +12,7 @@ The whole job
 5. Keep the guards. When you shorten or rewrite code, every check it made is still made.
 
 Nothing more
-6. No option, layer, class, setting or file the task did not ask for. No comment that repeats the code.
+6. No option, layer, class, setting or file the task did not ask for. No comment that repeats the code. Of two ways that do all of the above, write the shorter: a built-in or one expression before a helper of your own.
 
 Tests
 7. When the change touches money, parsing, validation or security, or fixes a bug, add or extend one test for the case that matters, where the project keeps its tests.
