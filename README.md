@@ -11,6 +11,21 @@ Ockham makes a coding agent write only the code a task needs, reuse what the cod
 
 *One ticket of the benchmark, without Ockham and with it. Nothing in the picture is staged: it is drawn from two recorded sessions ([docs/demo](docs/demo)), and a test fails if it stops matching them. They are typical ones: in the benchmark, with no tool the second copy of this bug was fixed in no session of five, and with Ockham's note in fifteen of fifteen.*
 
+## Install
+
+In Claude Code, with Node.js 20 or later on the machine:
+
+```bash
+claude plugin marketplace add Octonove/ockham
+claude plugin install ockham@ockham
+```
+
+On Claude Code 2.1.275 or later it is one step from inside a session: `/plugin install ockham --marketplace Octonove/ockham`. Third-party marketplaces do not update on their own: `claude plugin update ockham@ockham` fetches the latest commit, and `claude plugin uninstall ockham@ockham` removes it.
+
+To try it for one session without installing anything: `git clone https://github.com/Octonove/ockham.git`, then `claude --plugin-dir ./ockham`.
+
+It is still in development (see the status above). It runs in Claude Code today; the Codex side is still open ([docs/plan.md](docs/plan.md)).
+
 ## Why
 
 A prompt can ask an agent to keep things small. It cannot tell whether the agent did, it cannot show the agent what already exists at the moment it is about to write, and it forgets everything when the session ends.

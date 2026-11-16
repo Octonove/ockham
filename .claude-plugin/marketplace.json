@@ -1,0 +1,20 @@
+{
+  "name": "ockham",
+  "owner": {
+    "name": "Octonove",
+    "url": "https://github.com/Octonove"
+  },
+  "metadata": {
+    "description": "The smallest change that works, checked: rules, a project index and end-of-task checks for coding agents."
+  },
+  "plugins": [
+    {
+      "name": "ockham",
+      "source": "./",
+      "description": "The smallest change that works, checked: rules, a project index that warns before a coding agent duplicates code, and checks on what it actually wrote. In development.",
+      "category": "development",
+      "homepage": "https://invokard.com/tools/ockham",
+      "keywords": ["code-quality", "coding-agents", "minimal-change", "benchmark"]
+    }
+  ]
+}
