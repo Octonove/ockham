@@ -90,17 +90,19 @@ test('the hook hands the rules and the canary to the host as SessionStart contex
   assert.match(out.hookSpecificOutput.additionalContext, /walnut-42/);
 });
 
-test('the first session on a machine tells the user, once, that the part about tests is off and how to turn it on', async () => {
+test('until the user chooses, every session tells them that the part about tests is off and how to choose', async () => {
   const dir = cache();
   const first = JSON.parse((await runHook({ OCKHAM_CACHE_DIR: dir, OCKHAM_TESTS: '', OCKHAM_LANG: '' })).stdout);
   assert.match(first.systemMessage, /^Ockham is on\. Its part about writing tests ships off\./);
-  assert.match(first.systemMessage, /OCKHAM_TESTS=on/);
+  assert.match(first.systemMessage, /OCKHAM_TESTS=on[\s\S]*OCKHAM_TESTS=off keeps it off/);
   assert.doesNotMatch(first.hookSpecificOutput.additionalContext, /OCKHAM_TESTS/, 'the notice is for the user, not for the model');
   const second = JSON.parse((await runHook({ OCKHAM_CACHE_DIR: dir, OCKHAM_TESTS: '', OCKHAM_LANG: '' })).stdout);
-  assert.equal(second.systemMessage, undefined, 'it is said once');
-  assert.ok(second.hookSpecificOutput.additionalContext);
-  const on = JSON.parse((await runHook({ OCKHAM_TESTS: 'on', OCKHAM_LANG: '' })).stdout);
-  assert.equal(on.systemMessage, undefined, 'nobody who turned tests on is told how to');
+  assert.equal(second.systemMessage, first.systemMessage, 'a session nobody read cannot use it up');
+  for (const chosen of ['on', 'off', ' OFF ']) {
+    const quiet = JSON.parse((await runHook({ OCKHAM_TESTS: chosen, OCKHAM_LANG: '' })).stdout);
+    assert.equal(quiet.systemMessage, undefined, `who chose ${chosen.trim()} is not told again`);
+    assert.ok(quiet.hookSpecificOutput.additionalContext);
+  }
   const spanish = JSON.parse((await runHook({ OCKHAM_TESTS: '', OCKHAM_LANG: 'es' })).stdout);
   assert.match(spanish.systemMessage, /^Ockham está activo\. Su parte de escribir pruebas viene apagada\./);
   // With nothing for the model, the notice still goes out alone.
