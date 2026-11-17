@@ -35,7 +35,12 @@ codex plugin add ockham@ockham
 
 Codex runs the hooks of a plugin only once you have looked at them and trusted them: in the desktop app under **Settings › Hooks**, in the terminal with `/hooks`. Until then Ockham is installed and does nothing. Codex writes files with `apply_patch`, one patch for any number of files, and Ockham reads each patch file by file, as if it were Claude Code's calls ([D22](docs/decisions.md)). A file Codex writes with a shell command instead is not seen, as a file Claude Code writes with Bash is not, and Codex does that more often. `codex plugin marketplace upgrade ockham` fetches the latest commit; a changed hook has to be trusted again.
 
-**Writing tests is off as shipped.** With `OCKHAM_TESTS=on`, the agent adds or extends a test whenever a change touches money, reading data, validation or security, or fixes a bug, and before it finishes Ockham checks that it did. What you get is a test that guards the change from then on; what it costs is time and tokens: in the benchmark a session with the rule cost about a third more and passed the same hidden checks ([D23](docs/decisions.md)). Until you choose, every session says so, in a notice for you that the model never sees. To turn it on, in Claude Code put `"env": { "OCKHAM_TESTS": "on" }` in `~/.claude/settings.json`; in Codex, set it as an environment variable. `OCKHAM_TESTS=off` keeps it off and the notice quiet.
+**Writing tests is off as shipped, so that a session costs less. You choose:**
+
+- **On** (`OCKHAM_TESTS=on`): when a change touches money, reading data, validation or security, or fixes a bug, the agent adds or extends a test, and before it finishes Ockham checks that it did. Better: that change keeps a test that guards it from then on; in the benchmark nine sessions in ten that needed a test left one. Worse: a session costs about a third more and takes longer.
+- **Off** (`OCKHAM_TESTS=off`, as it ships): a session costs about a quarter less and passes the same hidden checks ([D23](docs/decisions.md)). Worse: those changes are mostly left without a test, so if a later change breaks them, no test says so. Ockham still asks for the tests the project already has to be run.
+
+Until you choose, every session says so, in a notice for you that the model never sees. In Claude Code put `"env": { "OCKHAM_TESTS": "on" }` (or `"off"`) in `~/.claude/settings.json`; in Codex, set it as an environment variable.
 
 It is still in development (see the status above).
 

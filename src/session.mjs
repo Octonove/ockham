@@ -57,8 +57,18 @@ export function rulesFor(env, size) {
 }
 
 const TESTS_NOTICE = {
-  en: 'Ockham is on. Its part about writing tests ships off. With OCKHAM_TESTS=on, the agent adds or extends a test whenever a change touches money, reading data, validation or security, or fixes a bug, and before it finishes Ockham checks that it did. What you get is a test that guards the change from then on; what it costs is time and tokens: in the Ockham benchmark a session with the test rule cost about a third more and passed the same hidden checks. To turn it on, set OCKHAM_TESTS=on: in Claude Code, "env": { "OCKHAM_TESTS": "on" } in ~/.claude/settings.json; in Codex, an environment variable; OCKHAM_TESTS=off keeps it off. This notice goes away once you choose one.',
-  es: 'Ockham está activo. Su parte de escribir pruebas viene apagada. Con OCKHAM_TESTS=on, el agente añade o amplía una prueba cada vez que un cambio toca dinero, lectura de datos, validación o seguridad, o arregla un fallo, y antes de terminar Ockham comprueba que lo ha hecho. Lo que ganas es una prueba que protege ese cambio en adelante; lo que cuesta es tiempo y tokens: en el banco de Ockham, una sesión con la regla de pruebas costó un tercio más y pasó las mismas comprobaciones ocultas. Para activarla, pon OCKHAM_TESTS=on: en Claude Code, "env": { "OCKHAM_TESTS": "on" } en ~/.claude/settings.json; en Codex, como variable de entorno; OCKHAM_TESTS=off la deja apagada. Este aviso desaparece cuando eliges una de las dos.',
+  en: [
+    'Ockham is on. Its part about writing tests ships off, so that a session costs less. You choose:',
+    '- On (OCKHAM_TESTS=on): when a change touches money, reading data, validation or security, or fixes a bug, the agent adds or extends a test, and Ockham checks before it finishes that it did. Better: that change keeps a test that guards it from then on; in the Ockham benchmark nine sessions in ten that needed a test left one. Worse: a session costs about a third more, and takes longer.',
+    '- Off (OCKHAM_TESTS=off, as it ships): a session costs about a quarter less and passes the same hidden checks. Worse: those changes are mostly left without a test, so if a later change breaks them, no test says so. Ockham still asks for the tests the project already has to be run.',
+    'Set it in Claude Code with "env": { "OCKHAM_TESTS": "on" } (or "off") in ~/.claude/settings.json, and in Codex as an environment variable. This notice goes away once you choose.',
+  ].join('\n'),
+  es: [
+    'Ockham está activo. Su parte de escribir pruebas viene apagada, para que cada sesión cueste menos. Tú eliges:',
+    '- Activada (OCKHAM_TESTS=on): cuando un cambio toca dinero, lectura de datos, validación o seguridad, o arregla un fallo, el agente añade o amplía una prueba, y Ockham comprueba antes de terminar que lo ha hecho. Mejora: ese cambio queda protegido por una prueba en adelante; en el banco de Ockham, nueve de cada diez sesiones que necesitaban prueba la dejaron. Empeora: cada sesión cuesta un tercio más y tarda más.',
+    '- Apagada (OCKHAM_TESTS=off, como viene): cada sesión cuesta una cuarta parte menos y pasa las mismas comprobaciones ocultas. Empeora: esos cambios se quedan casi siempre sin prueba, así que si otro cambio los rompe más adelante, ninguna prueba lo avisa. Ockham sigue pidiendo que se ejecuten las pruebas que el proyecto ya tiene.',
+    'Se pone en Claude Code con "env": { "OCKHAM_TESTS": "on" } (u "off") en ~/.claude/settings.json, y en Codex como variable de entorno. Este aviso desaparece cuando eliges.',
+  ].join('\n'),
 };
 
 /**

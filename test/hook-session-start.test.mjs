@@ -93,8 +93,10 @@ test('the hook hands the rules and the canary to the host as SessionStart contex
 test('until the user chooses, every session tells them that the part about tests is off and how to choose', async () => {
   const dir = cache();
   const first = JSON.parse((await runHook({ OCKHAM_CACHE_DIR: dir, OCKHAM_TESTS: '', OCKHAM_LANG: '' })).stdout);
-  assert.match(first.systemMessage, /^Ockham is on\. Its part about writing tests ships off\./);
-  assert.match(first.systemMessage, /OCKHAM_TESTS=on[\s\S]*OCKHAM_TESTS=off keeps it off/);
+  assert.match(first.systemMessage, /^Ockham is on\. Its part about writing tests ships off, so that a session costs less\./);
+  // Both sides are told, each with what it makes better and what it makes worse.
+  assert.match(first.systemMessage, /^- On \(OCKHAM_TESTS=on\):.*Better:.*Worse:/m);
+  assert.match(first.systemMessage, /^- Off \(OCKHAM_TESTS=off, as it ships\):.*Worse:/m);
   assert.doesNotMatch(first.hookSpecificOutput.additionalContext, /OCKHAM_TESTS/, 'the notice is for the user, not for the model');
   const second = JSON.parse((await runHook({ OCKHAM_CACHE_DIR: dir, OCKHAM_TESTS: '', OCKHAM_LANG: '' })).stdout);
   assert.equal(second.systemMessage, first.systemMessage, 'a session nobody read cannot use it up');
@@ -104,7 +106,9 @@ test('until the user chooses, every session tells them that the part about tests
     assert.ok(quiet.hookSpecificOutput.additionalContext);
   }
   const spanish = JSON.parse((await runHook({ OCKHAM_TESTS: '', OCKHAM_LANG: 'es' })).stdout);
-  assert.match(spanish.systemMessage, /^Ockham está activo\. Su parte de escribir pruebas viene apagada\./);
+  assert.match(spanish.systemMessage, /^Ockham está activo\. Su parte de escribir pruebas viene apagada/);
+  assert.match(spanish.systemMessage, /^- Activada \(OCKHAM_TESTS=on\):.*Mejora:.*Empeora:/m);
+  assert.match(spanish.systemMessage, /^- Apagada \(OCKHAM_TESTS=off, como viene\):.*Empeora:/m);
   // With nothing for the model, the notice still goes out alone.
   const alone = JSON.parse((await runHook({ OCKHAM_TESTS: '', OCKHAM_RULES: 'off', OCKHAM_CANARY: '' })).stdout);
   assert.ok(alone.systemMessage);
