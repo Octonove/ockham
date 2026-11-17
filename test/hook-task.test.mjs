@@ -63,9 +63,8 @@ function runHook(name, input, env) {
 }
 
 test('a task that leaves a copy unfixed is stopped once, told where, and then let go', () => {
-  const { env: cache, session, write, ledger } = project();
-  // With the part about tests on, the missing test is asked for too.
-  const env = { ...cache, OCKHAM_TESTS: 'on' };
+  // As shipped the part about tests is on, so the missing test is asked for too.
+  const { env, session, write, ledger } = project();
   taskStarts({ ...session, prompt_id: 'p1', prompt: 'Bug: 19.99 shows as 24.18. Fix the rounding.' }, env);
   write('src/prices/shelf.js', ROUNDED, { prompt_id: 'p1' });
   const said = taskEnds({ ...session, stop_hook_active: false, last_assistant_message: 'Fixed.' }, env);
@@ -81,8 +80,9 @@ test('a task that leaves a copy unfixed is stopped once, told where, and then le
   assert.deepEqual(events.map((event) => [event.event, event.checks ?? event.left]), [['check', ['copy', 'test']], ['checked', ['test']]]);
 });
 
-test('as shipped, the same task is stopped for the copy and is not asked for a test', () => {
-  const { env, session, write } = project();
+test('with the tests off, the same task is stopped for the copy and is not asked for a test', () => {
+  const { env: cache, session, write } = project();
+  const env = { ...cache, OCKHAM_TESTS: 'off' };
   taskStarts({ ...session, prompt_id: 'p1', prompt: 'Bug: 19.99 shows as 24.18. Fix the rounding.' }, env);
   write('src/prices/shelf.js', ROUNDED, { prompt_id: 'p1' });
   const said = taskEnds({ ...session, stop_hook_active: false, last_assistant_message: 'Fixed.' }, env);

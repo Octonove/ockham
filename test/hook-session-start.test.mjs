@@ -52,13 +52,14 @@ test('an unknown language gets the English rules', () => {
   assert.equal(rules('xx'), rules('en'));
 });
 
-test('sessionContext gives the rules, in the language asked for, without the one about tests unless it is on', () => {
+test('sessionContext gives the rules, in the language asked for, without the one about tests when it is off', () => {
   const on = { OCKHAM_TESTS: 'on' };
   assert.equal(sessionContext(on), rules('en'));
   assert.equal(sessionContext({ ...on, OCKHAM_LANG: 'es' }), rules('es'));
   assert.equal(sessionContext({ ...on, OCKHAM_LANG: 'es-ES' }), rules('es'));
-  assert.doesNotMatch(sessionContext({}), /^7\./m);
-  assert.match(sessionContext({}), /^6\./m);
+  assert.equal(sessionContext({}), rules('en'), 'as shipped the rule about tests is in');
+  assert.doesNotMatch(sessionContext({ OCKHAM_TESTS: 'off' }), /^7\./m);
+  assert.match(sessionContext({ OCKHAM_TESTS: 'off' }), /^6\./m);
 });
 
 test('OCKHAM_RULES=off says nothing', () => {
@@ -90,13 +91,14 @@ test('the hook hands the rules and the canary to the host as SessionStart contex
   assert.match(out.hookSpecificOutput.additionalContext, /walnut-42/);
 });
 
-test('until the user chooses, every session tells them that the part about tests is off and how to choose', async () => {
+test('until the user chooses, every session tells them what a test is, that the part about tests is on, and how to turn it off', async () => {
   const dir = cache();
   const first = JSON.parse((await runHook({ OCKHAM_CACHE_DIR: dir, OCKHAM_TESTS: '', OCKHAM_LANG: '' })).stdout);
-  assert.match(first.systemMessage, /^Ockham is on\. Its part about writing tests ships off, so that a session costs less\./);
-  // Both sides are told, each with what it makes better and what it makes worse.
-  assert.match(first.systemMessage, /^- On \(OCKHAM_TESTS=on\):.*Better:.*Worse:/m);
-  assert.match(first.systemMessage, /^- Off \(OCKHAM_TESTS=off, as it ships\):.*Worse:/m);
+  assert.match(first.systemMessage, /^Ockham is on, and so is its part about writing tests\. A test is a small piece of code kept in your project/);
+  // Both sides are told, each with what it makes better and what it makes worse, and how to turn the tests off.
+  assert.match(first.systemMessage, /^- On \(as it ships\):.*Better:.*Worse:/m);
+  assert.match(first.systemMessage, /^- Off \(OCKHAM_TESTS=off\):.*Worse:/m);
+  assert.match(first.systemMessage, /"OCKHAM_TESTS": "off"/);
   assert.doesNotMatch(first.hookSpecificOutput.additionalContext, /OCKHAM_TESTS/, 'the notice is for the user, not for the model');
   const second = JSON.parse((await runHook({ OCKHAM_CACHE_DIR: dir, OCKHAM_TESTS: '', OCKHAM_LANG: '' })).stdout);
   assert.equal(second.systemMessage, first.systemMessage, 'a session nobody read cannot use it up');
@@ -106,9 +108,9 @@ test('until the user chooses, every session tells them that the part about tests
     assert.ok(quiet.hookSpecificOutput.additionalContext);
   }
   const spanish = JSON.parse((await runHook({ OCKHAM_TESTS: '', OCKHAM_LANG: 'es' })).stdout);
-  assert.match(spanish.systemMessage, /^Ockham está activo\. Su parte de escribir pruebas viene apagada/);
-  assert.match(spanish.systemMessage, /^- Activada \(OCKHAM_TESTS=on\):.*Mejora:.*Empeora:/m);
-  assert.match(spanish.systemMessage, /^- Apagada \(OCKHAM_TESTS=off, como viene\):.*Empeora:/m);
+  assert.match(spanish.systemMessage, /^Ockham está activo, y también su parte de escribir pruebas\. Una prueba es un trozo de código/);
+  assert.match(spanish.systemMessage, /^- Activada \(como viene\):.*Mejora:.*Empeora:/m);
+  assert.match(spanish.systemMessage, /^- Apagada \(OCKHAM_TESTS=off\):.*Empeora:/m);
   // With nothing for the model, the notice still goes out alone.
   const alone = JSON.parse((await runHook({ OCKHAM_TESTS: '', OCKHAM_RULES: 'off', OCKHAM_CANARY: '' })).stdout);
   assert.ok(alone.systemMessage);

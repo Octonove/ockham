@@ -230,7 +230,7 @@ The plan asked that a session with the index cost no more than one with the rule
 
 ## Without the rule about tests
 
-Asked in [phase 2](rules.md) why Ockham costs more, the answer was the tests. `OCKHAM_TESTS=off` leaves rule 7 out of the ruleset, and with it the tests' place, and nothing else. It is off unless asked for: rule 7 is in the ruleset that was approved. Since 0.1.0 it is the other way round, by the owner's decision: rule 7 and the tests' place go in only with `OCKHAM_TESTS=on` ([D23](decisions.md)).
+Asked in [phase 2](rules.md) why Ockham costs more, the answer was the tests. `OCKHAM_TESTS=off` leaves rule 7 out of the ruleset, and with it the tests' place, and nothing else. It is off unless asked for: rule 7 is in the ruleset that was approved. In 0.1.0 to 0.1.2 it was the other way round, by the owner's decision ([D23](decisions.md)); since 0.1.3 it is on again unless asked to be off ([D24](decisions.md)).
 
 On the nine held-out tasks it is the last column above: the same hidden checks as the rules alone, 44 of 45, at 0.040 $ a session against 0.053 $. A quarter less, and cheaper in nine tasks of nine.
 

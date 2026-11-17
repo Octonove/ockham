@@ -87,8 +87,8 @@ test('at the start a session is told the helpers the project shares, and where i
   assert.match(shared, /- isEmail\(text\) in src\/validation\/email\.js/);
   assert.doesNotMatch(shared, /tests are in/);
   assert.doesNotMatch(sharedContext({ cwd: root, session_id: 's1' }, { ...env, OCKHAM_TESTS: 'off' }), /tests are in/, 'no tests wanted, no tests shown');
-  assert.doesNotMatch(sharedContext({ cwd: root, session_id: 's1' }, env), /tests are in/, 'the part about tests ships off');
   const withTests = sharedContext({ cwd: root, session_id: 's1' }, { ...env, OCKHAM_TESTS: 'on' });
+  assert.equal(sharedContext({ cwd: root, session_id: 's1' }, env), withTests, 'the part about tests ships on');
   assert.match(withTests, /this project's tests are in test\/ \(1 of them\), written with node:test; `npm test` runs `node --test test\/`\./);
   assert.match(withTests, /this is how test\/products\.test\.js begins:\nimport assert from 'node:assert\/strict';\nimport \{ test \} from 'node:test';\n[\s\S]*test\('a product has an address', \(\) => \{\n[^\n]+\n\}\);$/);
   assert.doesNotMatch(withTests, /a second test that is not shown/);

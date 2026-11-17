@@ -48,7 +48,7 @@ const BY_DEFAULT = CHECKS;
 /**
  * The checks an environment asks for. OCKHAM_CHECKS=off gives none, a list of names gives
  * those, anything else gives the ones that ship on. The one about a missing test goes with
- * the rest of the part about tests: only with OCKHAM_TESTS=on (D23).
+ * the rest of the part about tests: not with OCKHAM_TESTS=off (D24).
  * @param {Record<string, string | undefined>} env
  * @returns {string[]}
  */

@@ -51,8 +51,8 @@ function after_(changes, { prompt = 'Do it.', env = {}, files = FILES, ...rest }
 /** @param {ReturnType<typeof findings>} found */
 const names = (found) => found.map((finding) => finding.check);
 
-test('the checks that are on: all but the one about tests as shipped, none when off, the ones named, and a test asked for only by who wants tests', () => {
-  assert.deepEqual(checksOn({}), CHECKS.filter((name) => name !== 'test'));
+test('the checks that are on: all of them as shipped, none when off, the ones named, and no test asked for when tests are off', () => {
+  assert.deepEqual(checksOn({}), CHECKS);
   assert.deepEqual(checksOn({ OCKHAM_TESTS: 'on' }), CHECKS);
   assert.deepEqual(checksOn({ OCKHAM_CHECKS: 'off' }), []);
   assert.deepEqual(checksOn({ OCKHAM_CHECKS: 'deps, copy, nonsense' }), ['deps', 'copy']);
@@ -189,8 +189,8 @@ test('a fix with no test touched is asked for one; a new value, a wrapped call o
   // A project that has no tests is not given its first one here.
   const { 'test/products.test.js': _, ...untested } = FILES;
   assert.deepEqual(after_({ 'src/prices/shelf.js': fixed }, { env, prompt: 'Bug: fix the rounding.', files: untested }), []);
-  // Nobody who did not ask for tests is asked for one: not as shipped, not with them turned off.
-  assert.deepEqual(after_({ 'src/prices/shelf.js': fixed }, { prompt: 'Bug: fix the rounding.' }).filter((finding) => finding.check === 'test'), []);
+  // As shipped the test is asked for; with the tests turned off, nobody is asked for one.
+  assert.deepEqual(after_({ 'src/prices/shelf.js': fixed }, { prompt: 'Bug: fix the rounding.' }).filter((finding) => finding.check === 'test'), [{ check: 'test', file: 'src/prices/shelf.js', why: 'fix' }]);
   assert.deepEqual(after_({ 'src/prices/shelf.js': fixed }, { env: { OCKHAM_TESTS: 'off' }, prompt: 'Bug: fix the rounding.' }).filter((finding) => finding.check === 'test'), []);
 });
 

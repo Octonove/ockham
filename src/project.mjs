@@ -133,7 +133,7 @@ export function sharedContext(input, env) {
   const { index } = refresh(root, { env, budgetMs: 1500 });
   const list = listFormat(env);
   const shared = list === 'off' ? '' : digestText(index, language(env), list);
-  // Where the tests are is part of the part about tests: shown only with OCKHAM_TESTS=on.
+  // Where the tests are is part of the part about tests: left out with OCKHAM_TESTS=off.
   const wanted = switched(env, 'OCKHAM_FACTS', FACTS_BY_DEFAULT) && testsOn(env);
   const tests = wanted ? testsText(index, { script: testScript(root), head: (file) => headOf(root, file), language: language(env) }) : '';
   if (shared || tests) record({ event: 'shared', root, session: input.session_id, list, helpers: shared ? digest(index).length : 0, tests: Boolean(tests) }, env);

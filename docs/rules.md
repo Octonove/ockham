@@ -11,7 +11,7 @@ Two sizes of the same seven rules, each in English and Spanish, in `rules/`:
 | `ockham.en.md`, `ockham.es.md` | 314, 329 | a session, when it starts |
 | `ockham.compact.en.md`, `ockham.compact.es.md` | 157, 177 | every agent that session hands work to |
 
-`OCKHAM_RULES=off` loads none; `=full` or `=compact` gives that size to both. `OCKHAM_LANG=es` picks Spanish. Rule 7, the one that asks for a test, goes in only with `OCKHAM_TESTS=on`, and nothing else depends on that switch. It was added in phase 3 as `OCKHAM_TESTS=off`, when the tests turned out to be most of what a session with Ockham costs ([index.md](index.md#without-the-rule-about-tests)), and since 0.1.0 the rule ships off ([D23](decisions.md)). Every measurement on this page was made with it on.
+`OCKHAM_RULES=off` loads none; `=full` or `=compact` gives that size to both. `OCKHAM_LANG=es` picks Spanish. Rule 7, the one that asks for a test, is left out with `OCKHAM_TESTS=off`, and nothing else depends on that switch. It was added in phase 3, when the tests turned out to be most of what a session with Ockham costs ([index.md](index.md#without-the-rule-about-tests)); the rule shipped off in 0.1.0 to 0.1.2 ([D23](decisions.md)) and ships on again since 0.1.3 ([D24](decisions.md)). Every measurement on this page was made with it on.
 
 That the text arrives is not assumed. `npm run hook:live` starts real sessions and asks each for a word that only its hook knows: one word for the session, and a different one for a subagent, which the session itself is never given. Both came back on 15 November 2026.
 

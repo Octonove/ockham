@@ -35,12 +35,12 @@ codex plugin add ockham@ockham
 
 Codex runs the hooks of a plugin only once you have looked at them and trusted them: in the desktop app under **Settings › Hooks**, in the terminal with `/hooks`. Until then Ockham is installed and does nothing. Codex writes files with `apply_patch`, one patch for any number of files, and Ockham reads each patch file by file, as if it were Claude Code's calls ([D22](docs/decisions.md)). A file Codex writes with a shell command instead is not seen, as a file Claude Code writes with Bash is not, and Codex does that more often. `codex plugin marketplace upgrade ockham` fetches the latest commit; a changed hook has to be trusted again.
 
-**Writing tests is off as shipped, so that a session costs less. You choose:**
+**Writing tests is on as shipped, and you choose whether to keep it.** A test is a small piece of code kept in your project: it runs your code on a known case and checks the result, every time the tests run, so if a later change breaks that logic, it fails and says what broke.
 
-- **On** (`OCKHAM_TESTS=on`): when a change touches money, reading data, validation or security, or fixes a bug, the agent adds or extends a test, and before it finishes Ockham checks that it did. Better: that change keeps a test that guards it from then on; in the benchmark nine sessions in ten that needed a test left one. Worse: a session costs about a third more and takes longer.
-- **Off** (`OCKHAM_TESTS=off`, as it ships): a session costs about a quarter less and passes the same hidden checks ([D23](docs/decisions.md)). Worse: those changes are mostly left without a test, so if a later change breaks them, no test says so. Ockham still asks for the tests the project already has to be run.
+- **On** (as it ships): when a change touches money, reading data, validation or security, or fixes a bug, the agent adds or extends a test, and before it finishes Ockham checks that it did. Better: that change stays guarded from then on; in the benchmark nine sessions in ten that needed a test left one. Worse: a session costs about a third more and takes longer.
+- **Off** (`OCKHAM_TESTS=off`): a session costs about a quarter less, and the change itself comes out as well: it passes the same hidden checks ([D24](docs/decisions.md)). Worse: those changes are mostly left without a test, so if a later change breaks them, nothing says so. Ockham still asks for the tests the project already has to be run.
 
-Until you choose, every session says so, in a notice for you that the model never sees. In Claude Code put `"env": { "OCKHAM_TESTS": "on" }` (or `"off"`) in `~/.claude/settings.json`; in Codex, set it as an environment variable.
+Until you choose, every session says so, in a notice for you that the model never sees. To turn the tests off, in Claude Code put `"env": { "OCKHAM_TESTS": "off" }` in `~/.claude/settings.json`, or in a project's `.claude/settings.local.json` for that project alone; in Codex, set it as an environment variable. `OCKHAM_TESTS=on` keeps them and quiets the notice.
 
 It is still in development (see the status above).
 
@@ -157,7 +157,7 @@ What that says:
 - **The note about a copy works where a program can see the copy.** In every run so far it went to 70 sessions, all on tasks where a bug is written twice, and all 70 fixed both places. One of those tasks is the one no wording of a rule could move.
 - **It sees a line that is written twice, with the same names or with others.** It does not see a fix that only adds to the line, or the same number in another call: of the 87 sessions saved that left a place unfixed, it would point 77.
 - **The index does not make a session cheaper. It makes it shorter.** The same cost as the rules alone on the nine tasks, a twentieth less on the six, and on those a sixth less time. A shorter list and no list at all were tried, and cost the same: what the text saves on every call, the agent spends on more calls.
-- **What costs is the tests.** Without the rule that asks for one, a session costs a quarter less and passes the same hidden checks: a change that works then costs what it costs with no tool, and nearly every session produces one, where one in five did not. Since 0.1.0 the rule ships off, by the owner's decision, and `OCKHAM_TESTS=on` turns it on ([D23](docs/decisions.md)). Every measurement on this page was made with it on.
+- **What costs is the tests.** Without the rule that asks for one, a session costs a quarter less and passes the same hidden checks: a change that works then costs what it costs with no tool, and nearly every session produces one, where one in five did not. It shipped off in 0.1.0 to 0.1.2 and ships on again since 0.1.3, by the owner's decision; `OCKHAM_TESTS=off` leaves it out ([D24](docs/decisions.md)). Every measurement on this page was made with it on.
 - **No false warning so far**, in 546 sessions with the index.
 - **And one task nothing helps on.** A redirect after sign-in that three sessions of five leave open to another site, with the rules or without.
 
@@ -186,7 +186,7 @@ What that says:
 - **A copy the note of the index did not get to is got at the end.** On five tasks with a bug written twice, a session with no tool fixed the second place once in 25. With the checks alone and nothing said before, fifteen of fifteen.
 - **Two of the mistakes the checks look for, this model does not make.** In 1,673 sessions nobody added a package or dropped a check while shortening a function. Those two checks are proved on solutions written to be wrong, seven of seven, and stay silent on the real ones.
 - **A second version written in line is not seen.** One of seven planted ones is found. The rules and the list at the start are what prevent them: 238 sessions of 238 reused the helper.
-- **It costs what the tests it asks for cost**: 15 in a hundred on those six tasks, where the bar set beforehand was a tenth. One check does all of that; since 0.1.0 it is part of what `OCKHAM_TESTS=on` turns on, and off as shipped.
+- **It costs what the tests it asks for cost**: 15 in a hundred on those six tasks, where the bar set beforehand was a tenth. One check does all of that; it is part of the tests, on as shipped, and `OCKHAM_TESTS=off` leaves it out.
 - **It rarely stops a session that left nothing wrong**: none of thirty with the tool as it ships, and without a model seven of 544 saved ones.
 
 ## The benchmark

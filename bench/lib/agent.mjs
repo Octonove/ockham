@@ -32,7 +32,7 @@ const OCKHAM_ARMS = {
   'ockham-checks': { OCKHAM_RULES: 'off', OCKHAM_LIST: 'off', OCKHAM_FACTS: 'off', OCKHAM_NOTES: 'off' },
 };
 // What an arm can switch on or off by name: ockham+hints, ockham-index+nofacts, ockham+tests, ockham+notests, ockham+maplist, ockham+nochecks.
-// The part about tests ships off since 0.1.0 (D23): every run before that had it on, and ockham+tests is what those runs measured.
+// The part about tests shipped off in 0.1.0 to 0.1.2 (D23) and ships on again since 0.1.3 (D24): +tests names it, +notests leaves it out.
 const EXTRAS = {
   facts: { OCKHAM_FACTS: 'on' }, nofacts: { OCKHAM_FACTS: 'off' }, hints: { OCKHAM_HINTS: 'on' }, nohints: { OCKHAM_HINTS: 'off' }, tests: { OCKHAM_TESTS: 'on' }, notests: { OCKHAM_TESTS: 'off' },
   fulllist: { OCKHAM_LIST: 'full' }, maplist: { OCKHAM_LIST: 'map' }, nolist: { OCKHAM_LIST: 'off' },

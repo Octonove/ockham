@@ -50,12 +50,12 @@ test('OCKHAM_RULES picks one size for both, or none', () => {
   assert.equal(subagentContext({ ...on, OCKHAM_RULES: 'something else' }), rules('en', 'compact'));
 });
 
-test('without OCKHAM_TESTS=on the rule about tests is left out, and only that one, in every size and language', () => {
+test('with OCKHAM_TESTS=off the rule about tests is left out, and only that one, in every size and language', () => {
   for (const language of ['en', 'es']) {
     for (const [context, size] of /** @type {[typeof sessionContext, string][]} */ ([[sessionContext, 'full'], [subagentContext, 'compact']])) {
       const whole = rules(language, size);
-      assert.equal(context({ OCKHAM_LANG: language }), context({ OCKHAM_LANG: language, OCKHAM_TESTS: 'off' }), `${language} ${size}: as shipped is the same as off`);
-      const lean = context({ OCKHAM_LANG: language });
+      assert.equal(context({ OCKHAM_LANG: language }), whole, `${language} ${size}: as shipped the rule about tests is in`);
+      const lean = context({ OCKHAM_LANG: language, OCKHAM_TESTS: 'off' });
       assert.deepEqual(lean.match(/^\d+\./gm), ['1.', '2.', '3.', '4.', '5.', '6.'], `${language} ${size}`);
       assert.doesNotMatch(lean, /^(?:Tests|Pruebas)$/m);
       assert.doesNotMatch(lean, /\n{3}/);
