@@ -12,7 +12,7 @@ When the agent means to stop, the files the task changed are compared with what 
 | `twin` | something is defined that another file already exports under that name, or a value is worked out in place and given the very name of a function the project exports | the files the task wrote, and the index | on |
 | `copy` | what the task replaced in one file is still in another | the same, with the finder of [index.md](index.md) | on |
 | `guard` | the files the task wrote make fewer checks than they made: a limit, a `throw`, a look at a type, a call that validates or cleans | the files the task wrote, before and now | on |
-| `test` | a fix, or a change that touches money, parsing, validation or security, with no test added or changed | the request, the lines that changed, and whether the project has tests | on; `OCKHAM_TESTS=off` takes it out |
+| `test` | a fix, or a change that touches money, parsing, validation or security, with no test added or changed | the request, the lines that changed, and whether the project has tests | off since 0.1.0; `OCKHAM_TESTS=on` turns it on ([D23](decisions.md)) |
 | `run` | code was changed after the last time the tests ran, in a session that has run a command; a comment alone does not count | the commands the session ran | on |
 | `claim` | the agent's summary says the tests pass, and none ran after the last change | the last message | on |
 

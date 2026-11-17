@@ -10,6 +10,7 @@ import { copiesText, describe, digestText, hintText, testsText, twinText } from 
 import { isTest, SOURCE } from './index/scan.mjs';
 import { refresh } from './index/store.mjs';
 import { record, tell, told } from './journal.mjs';
+import { testsOn } from './session.mjs';
 
 // What is on when nobody says. A part is on only when a measurement said that it helps:
 // what a request brings up was mostly noise; where the tests are took a sixth off the
@@ -132,8 +133,8 @@ export function sharedContext(input, env) {
   const { index } = refresh(root, { env, budgetMs: 1500 });
   const list = listFormat(env);
   const shared = list === 'off' ? '' : digestText(index, language(env), list);
-  // Nobody who has asked for no tests wants to be shown how the project writes them.
-  const wanted = switched(env, 'OCKHAM_FACTS', FACTS_BY_DEFAULT) && String(env.OCKHAM_TESTS || '').trim().toLowerCase() !== 'off';
+  // Where the tests are is part of the part about tests: shown only with OCKHAM_TESTS=on.
+  const wanted = switched(env, 'OCKHAM_FACTS', FACTS_BY_DEFAULT) && testsOn(env);
   const tests = wanted ? testsText(index, { script: testScript(root), head: (file) => headOf(root, file), language: language(env) }) : '';
   if (shared || tests) record({ event: 'shared', root, session: input.session_id, list, helpers: shared ? digest(index).length : 0, tests: Boolean(tests) }, env);
   return [shared, tests].filter(Boolean).join('\n\n');

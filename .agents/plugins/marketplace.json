@@ -1,0 +1,20 @@
+{
+  "name": "ockham",
+  "interface": {
+    "displayName": "Ockham"
+  },
+  "plugins": [
+    {
+      "name": "ockham",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

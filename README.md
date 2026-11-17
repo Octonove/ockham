@@ -5,7 +5,7 @@
 Ockham makes a coding agent write only the code a task needs, reuse what the codebase already has, and check what it wrote before it says "done". For Claude Code and Codex.
 
 > **Status: in development. Phases 0 to 3 of 9 are done: the foundations, the benchmark, the rules ([docs/rules.md](docs/rules.md)) and the index ([docs/index.md](docs/index.md)). Phase 4, the checks at the end of a task, is built and measured ([docs/checks.md](docs/checks.md)) and waits for its owner to close it.**
-> Installed as a Claude Code plugin, Ockham today gives a session its rules when it starts, with a list of what the project already has; tells it where the other copy is when it replaces a line that another file has too; looks once at what the task leaves behind when the agent means to finish, and says so if something is missing; and gives every subagent a compact copy of the rules. The rule of the project is that no rule or mechanism ships before a measurement says it helps, so the benchmark came first.
+> Installed as a plugin in Claude Code or in Codex, Ockham today gives a session its rules when it starts, with a list of what the project already has; tells it where the other copy is when it replaces a line that another file has too; looks once at what the task leaves behind when the agent means to finish, and says so if something is missing; and gives every subagent a compact copy of the rules. The rule of the project is that no rule or mechanism ships before a measurement says it helps, so the benchmark came first.
 
 ![One ticket given to a coding agent without Ockham and with it](docs/demo/points.svg)
 
@@ -13,7 +13,9 @@ Ockham makes a coding agent write only the code a task needs, reuse what the cod
 
 ## Install
 
-In Claude Code, with Node.js 20 or later on the machine:
+With Node.js 20 or later on the machine. It is the same plugin for both, from this repository, with the same hooks.
+
+**Claude Code:**
 
 ```bash
 claude plugin marketplace add Octonove/ockham
@@ -24,7 +26,18 @@ On Claude Code 2.1.275 or later it is one step from inside a session: `/plugin i
 
 To try it for one session without installing anything: `git clone https://github.com/Octonove/ockham.git`, then `claude --plugin-dir ./ockham`.
 
-It is still in development (see the status above). It runs in Claude Code today; the Codex side is still open ([docs/plan.md](docs/plan.md)).
+**Codex:**
+
+```bash
+codex plugin marketplace add Octonove/ockham
+codex plugin add ockham@ockham
+```
+
+Codex runs the hooks of a plugin only once you have looked at them and trusted them: in the desktop app under **Settings › Hooks**, in the terminal with `/hooks`. Until then Ockham is installed and does nothing. Codex writes files with `apply_patch`, one patch for any number of files, and Ockham reads each patch file by file, as if it were Claude Code's calls ([D22](docs/decisions.md)). A file Codex writes with a shell command instead is not seen, as a file Claude Code writes with Bash is not, and Codex does that more often. `codex plugin marketplace upgrade ockham` fetches the latest commit; a changed hook has to be trusted again.
+
+**Writing tests is off as shipped.** With `OCKHAM_TESTS=on`, the agent adds or extends a test whenever a change touches money, reading data, validation or security, or fixes a bug, and before it finishes Ockham checks that it did. What you get is a test that guards the change from then on; what it costs is time and tokens: in the benchmark a session with the rule cost about a third more and passed the same hidden checks ([D23](docs/decisions.md)). The first session on a machine says so once. To turn it on, in Claude Code put `"env": { "OCKHAM_TESTS": "on" }` in `~/.claude/settings.json`; in Codex, set it as an environment variable.
+
+It is still in development (see the status above).
 
 ## Why
 
@@ -56,7 +69,8 @@ The picture at the top is step 2, replayed from recorded sessions, and the one f
 | Piece | State |
 |---|---|
 | Repository, tests on Linux, Windows and macOS | Done |
-| Plugin skeleton for Claude Code; its session hook is proven on a live session | Done |
+| Plugin for Claude Code and for Codex, from the same repository | Done |
+| The hooks in Codex: the rules and the list at the start, the notes on `apply_patch`, the checks at the end | Proven on live Codex sessions: `npm run hook:live:codex` |
 | Benchmark harness: isolated headless sessions, hidden checks, self-test of every instrument | Done |
 | Benchmark tasks | 44: 39 to tune on, 5 held out to prove what was tuned |
 | Baseline (no tool, and ponytail as the reference arm) | Measured: [docs/baseline.md](docs/baseline.md) |
@@ -138,7 +152,7 @@ What that says:
 - **The note about a copy works where a program can see the copy.** In every run so far it went to 70 sessions, all on tasks where a bug is written twice, and all 70 fixed both places. One of those tasks is the one no wording of a rule could move.
 - **It sees a line that is written twice, with the same names or with others.** It does not see a fix that only adds to the line, or the same number in another call: of the 87 sessions saved that left a place unfixed, it would point 77.
 - **The index does not make a session cheaper. It makes it shorter.** The same cost as the rules alone on the nine tasks, a twentieth less on the six, and on those a sixth less time. A shorter list and no list at all were tried, and cost the same: what the text saves on every call, the agent spends on more calls.
-- **What costs is the tests.** Without the rule that asks for one, a session costs a quarter less and passes the same hidden checks: a change that works then costs what it costs with no tool, and nearly every session produces one, where one in five did not. The rule ships on, by the owner's decision: "checked" is what the tool promises. `OCKHAM_TESTS=off` leaves it out.
+- **What costs is the tests.** Without the rule that asks for one, a session costs a quarter less and passes the same hidden checks: a change that works then costs what it costs with no tool, and nearly every session produces one, where one in five did not. Since 0.1.0 the rule ships off, by the owner's decision, and `OCKHAM_TESTS=on` turns it on ([D23](docs/decisions.md)). Every measurement on this page was made with it on.
 - **No false warning so far**, in 546 sessions with the index.
 - **And one task nothing helps on.** A redirect after sign-in that three sessions of five leave open to another site, with the rules or without.
 
@@ -167,7 +181,7 @@ What that says:
 - **A copy the note of the index did not get to is got at the end.** On five tasks with a bug written twice, a session with no tool fixed the second place once in 25. With the checks alone and nothing said before, fifteen of fifteen.
 - **Two of the mistakes the checks look for, this model does not make.** In 1,673 sessions nobody added a package or dropped a check while shortening a function. Those two checks are proved on solutions written to be wrong, seven of seven, and stay silent on the real ones.
 - **A second version written in line is not seen.** One of seven planted ones is found. The rules and the list at the start are what prevent them: 238 sessions of 238 reused the helper.
-- **It costs what the tests it asks for cost**: 15 in a hundred on those six tasks, where the bar set beforehand was a tenth. One check does all of that, and `OCKHAM_CHECKS` leaves it out by name.
+- **It costs what the tests it asks for cost**: 15 in a hundred on those six tasks, where the bar set beforehand was a tenth. One check does all of that; since 0.1.0 it is part of what `OCKHAM_TESTS=on` turns on, and off as shipped.
 - **It rarely stops a session that left nothing wrong**: none of thirty with the tool as it ships, and without a model seven of 544 saved ones.
 
 ## The benchmark
@@ -179,6 +193,7 @@ npm run bench:selftest                                             # prove the i
 npm run bench:index                                                # what the index would say on every task, no model called
 npm run bench:checks                                               # what the checks at the end would find on every reference, no model called
 npm run hook:live                                                  # prove on real sessions that the hooks reach the model and its subagents
+npm run hook:live:codex                                            # the same proof on real Codex sessions
 node bench/run.mjs --arms baseline --runs 1 --model sonnet         # one pass without any tool
 OCKHAM_BENCH_PONYTAIL_DIR=/path/to/ponytail node bench/run.mjs --arms baseline,ponytail,ockham --runs 5
 node bench/run.mjs --held-out --arms ockham --runs 5               # the tasks no rule was tuned on

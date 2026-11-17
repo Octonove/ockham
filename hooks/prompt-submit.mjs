@@ -7,12 +7,14 @@
 // With both off it leaves at once, without reading its input.
 import { checksOn } from '../src/checks.mjs';
 import { contextOutput, readJson } from '../src/hookio.mjs';
+import { fromHost } from '../src/host.mjs';
 import { hintsOn, requestContext } from '../src/project.mjs';
 import { taskStarts } from '../src/task.mjs';
 
 const checks = checksOn(process.env).length > 0;
 if (!checks && !hintsOn(process.env)) process.exit(0);
-const input = await readJson();
+// Codex names the request by its turn_id; the rest of Ockham reads it as Claude Code's prompt_id.
+const input = fromHost(await readJson());
 try {
   if (checks) taskStarts(input, process.env);
 } catch {

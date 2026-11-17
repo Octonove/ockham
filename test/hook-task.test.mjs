@@ -63,7 +63,9 @@ function runHook(name, input, env) {
 }
 
 test('a task that leaves a copy unfixed is stopped once, told where, and then let go', () => {
-  const { env, session, write, ledger } = project();
+  const { env: cache, session, write, ledger } = project();
+  // With the part about tests on, the missing test is asked for too.
+  const env = { ...cache, OCKHAM_TESTS: 'on' };
   taskStarts({ ...session, prompt_id: 'p1', prompt: 'Bug: 19.99 shows as 24.18. Fix the rounding.' }, env);
   write('src/prices/shelf.js', ROUNDED, { prompt_id: 'p1' });
   const said = taskEnds({ ...session, stop_hook_active: false, last_assistant_message: 'Fixed.' }, env);
@@ -77,6 +79,16 @@ test('a task that leaves a copy unfixed is stopped once, told where, and then le
   assert.ok(!existsSync(ledger), 'the ledger is removed when the task ends');
   const events = readJournal(env).filter((event) => event.event.startsWith('check'));
   assert.deepEqual(events.map((event) => [event.event, event.checks ?? event.left]), [['check', ['copy', 'test']], ['checked', ['test']]]);
+});
+
+test('as shipped, the same task is stopped for the copy and is not asked for a test', () => {
+  const { env, session, write } = project();
+  taskStarts({ ...session, prompt_id: 'p1', prompt: 'Bug: 19.99 shows as 24.18. Fix the rounding.' }, env);
+  write('src/prices/shelf.js', ROUNDED, { prompt_id: 'p1' });
+  const said = taskEnds({ ...session, stop_hook_active: false, last_assistant_message: 'Fixed.' }, env);
+  assert.match(said, /src\/prices\/quote\.js:4/);
+  assert.doesNotMatch(said, /no test was added/);
+  assert.deepEqual(readJournal(env).filter((event) => event.event === 'check').map((event) => event.checks), [['copy']]);
 });
 
 test('a task that leaves nothing behind is not stopped, and neither is one that only read', () => {
@@ -176,6 +188,27 @@ test('the hooks do the same from end to end, and stay inside their time', async 
   const again = await runHook('stop', { ...session, hook_event_name: 'Stop', stop_hook_active: true }, env);
   assert.equal(again.stdout, '');
   for (const run of [prompt, write, shell, stop, again]) assert.ok(run.ms < 3000, `a hook took ${run.ms} ms`);
+});
+
+test('in Codex the hooks do the same from end to end: turn_id names the request and apply_patch writes the files', async () => {
+  const { root, env, session } = project();
+  // What Codex sends: a turn_id and no prompt_id, the patch in tool_input.command, file paths in full with forward slashes.
+  const turn = { ...session, turn_id: 'turn-1' };
+  const prompt = await runHook('prompt-submit', { ...turn, hook_event_name: 'UserPromptSubmit', prompt: 'Bug: fix the rounding of the shelf price.' }, env);
+  assert.equal(prompt.code, 0);
+  assert.equal(prompt.stdout, '');
+  const patch = ['*** Begin Patch', `*** Update File: ${join(root, 'src/prices/shelf.js').replace(/\\/g, '/')}`, '@@', '-  return Math.floor(net * (1 + RATE) * 100) / 100;', '+  return Math.round(net * (1 + RATE) * 100) / 100;', '*** End Patch'].join('\n');
+  const write = await runHook('pre-write', { ...turn, hook_event_name: 'PreToolUse', tool_name: 'apply_patch', tool_input: { command: patch } }, env);
+  assert.match(JSON.parse(write.stdout).hookSpecificOutput.additionalContext, /src\/prices\/quote\.js/, 'the other copy of the replaced line is named');
+  writeFileSync(join(root, 'src/prices/shelf.js'), ROUNDED);
+  const shell = await runHook('post-shell', { ...turn, hook_event_name: 'PostToolUse', tool_name: 'Bash', tool_input: { command: 'git diff' } }, env);
+  assert.equal(shell.stdout, '');
+  const stop = await runHook('stop', { ...turn, hook_event_name: 'Stop', stop_hook_active: false, last_assistant_message: 'Fixed the shelf price.' }, env);
+  const answer = JSON.parse(stop.stdout);
+  assert.equal(answer.decision, 'block');
+  assert.match(answer.reason, /src\/prices\/quote\.js:4/);
+  const again = await runHook('stop', { ...turn, hook_event_name: 'Stop', stop_hook_active: true }, env);
+  assert.equal(again.stdout, '');
 });
 
 test('a stop hook that is given nothing it can read lets the agent stop', async () => {

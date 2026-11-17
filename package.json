@@ -1,6 +1,6 @@
 {
   "name": "@octonove/ockham",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "description": "The smallest change that works, checked. Rules, a codebase index and end-of-task checks for coding agents.",
   "type": "module",
@@ -17,6 +17,7 @@
     "typecheck": "tsc -p tsconfig.json",
     "bench:selftest": "node bench/run.mjs --selftest",
     "hook:live": "node bench/hook-live.mjs",
+    "hook:live:codex": "node bench/hook-live-codex.mjs",
     "bench:index": "node bench/index-check.mjs",
     "bench:checks": "node bench/checks-check.mjs"
   },

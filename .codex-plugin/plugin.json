@@ -1,0 +1,25 @@
+{
+  "name": "ockham",
+  "version": "0.1.0",
+  "description": "The smallest change that works, checked: rules, a codebase index and end-of-task checks for coding agents.",
+  "author": {
+    "name": "Octonove",
+    "url": "https://github.com/Octonove"
+  },
+  "homepage": "https://invokard.com/tools/ockham",
+  "repository": "https://github.com/Octonove/ockham",
+  "license": "MIT",
+  "keywords": [
+    "code-quality",
+    "coding-agents",
+    "minimal-change",
+    "benchmark"
+  ],
+  "hooks": "./hooks/codex.json",
+  "interface": {
+    "displayName": "Ockham",
+    "shortDescription": "The smallest change that works, checked",
+    "developerName": "Octonove",
+    "category": "Developer Tools"
+  }
+}

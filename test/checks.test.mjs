@@ -51,8 +51,9 @@ function after_(changes, { prompt = 'Do it.', env = {}, files = FILES, ...rest }
 /** @param {ReturnType<typeof findings>} found */
 const names = (found) => found.map((finding) => finding.check);
 
-test('the checks that are on: all as shipped, none when off, the ones named, and no asking for tests from who wants none', () => {
-  assert.deepEqual(checksOn({}), CHECKS);
+test('the checks that are on: all but the one about tests as shipped, none when off, the ones named, and a test asked for only by who wants tests', () => {
+  assert.deepEqual(checksOn({}), CHECKS.filter((name) => name !== 'test'));
+  assert.deepEqual(checksOn({ OCKHAM_TESTS: 'on' }), CHECKS);
   assert.deepEqual(checksOn({ OCKHAM_CHECKS: 'off' }), []);
   assert.deepEqual(checksOn({ OCKHAM_CHECKS: 'deps, copy, nonsense' }), ['deps', 'copy']);
   assert.ok(!checksOn({ OCKHAM_TESTS: 'off' }).includes('test'));
@@ -176,7 +177,7 @@ test('new values in the same code are not new logic, and neither is a comment', 
 });
 
 test('a fix with no test touched is asked for one; a new value, a wrapped call or a project without tests is not', () => {
-  const env = { OCKHAM_CHECKS: 'test' };
+  const env = { OCKHAM_CHECKS: 'test', OCKHAM_TESTS: 'on' };
   const fixed = FILES['src/prices/shelf.js'].replace('Math.floor', 'Math.round');
   assert.deepEqual(after_({ 'src/prices/shelf.js': fixed }, { env, prompt: 'Bug: 19.99 shows as 24.18. Fix the rounding.' }), [{ check: 'test', file: 'src/prices/shelf.js', why: 'fix' }]);
   // The same change with a test beside it.
@@ -188,12 +189,13 @@ test('a fix with no test touched is asked for one; a new value, a wrapped call o
   // A project that has no tests is not given its first one here.
   const { 'test/products.test.js': _, ...untested } = FILES;
   assert.deepEqual(after_({ 'src/prices/shelf.js': fixed }, { env, prompt: 'Bug: fix the rounding.', files: untested }), []);
-  // Nobody who asked for no tests is asked for one.
+  // Nobody who did not ask for tests is asked for one: not as shipped, not with them turned off.
+  assert.deepEqual(after_({ 'src/prices/shelf.js': fixed }, { prompt: 'Bug: fix the rounding.' }).filter((finding) => finding.check === 'test'), []);
   assert.deepEqual(after_({ 'src/prices/shelf.js': fixed }, { env: { OCKHAM_TESTS: 'off' }, prompt: 'Bug: fix the rounding.' }).filter((finding) => finding.check === 'test'), []);
 });
 
 test('what a change touches says whether it is risky: money, parsing, validation, security', () => {
-  const env = { OCKHAM_CHECKS: 'test' };
+  const env = { OCKHAM_CHECKS: 'test', OCKHAM_TESTS: 'on' };
   /** @param {string} line */
   const why = (line) => after_({ 'src/chat/sidebar.js': `export function entry(chat) {\n  ${line}\n  return { title: chat.name };\n}\n` }, { env })[0]?.why;
   assert.equal(why('const total = chat.items.reduce((sum, item) => sum + item.cents, 0);'), 'money');

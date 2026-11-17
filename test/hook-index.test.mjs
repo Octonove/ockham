@@ -87,11 +87,12 @@ test('at the start a session is told the helpers the project shares, and where i
   assert.match(shared, /- isEmail\(text\) in src\/validation\/email\.js/);
   assert.doesNotMatch(shared, /tests are in/);
   assert.doesNotMatch(sharedContext({ cwd: root, session_id: 's1' }, { ...env, OCKHAM_TESTS: 'off' }), /tests are in/, 'no tests wanted, no tests shown');
-  const withTests = sharedContext({ cwd: root, session_id: 's1' }, env);
+  assert.doesNotMatch(sharedContext({ cwd: root, session_id: 's1' }, env), /tests are in/, 'the part about tests ships off');
+  const withTests = sharedContext({ cwd: root, session_id: 's1' }, { ...env, OCKHAM_TESTS: 'on' });
   assert.match(withTests, /this project's tests are in test\/ \(1 of them\), written with node:test; `npm test` runs `node --test test\/`\./);
   assert.match(withTests, /this is how test\/products\.test\.js begins:\nimport assert from 'node:assert\/strict';\nimport \{ test \} from 'node:test';\n[\s\S]*test\('a product has an address', \(\) => \{\n[^\n]+\n\}\);$/);
   assert.doesNotMatch(withTests, /a second test that is not shown/);
-  assert.match(sharedContext({ cwd: root }, { ...env, OCKHAM_LANG: 'es', OCKHAM_FACTS: 'on' }), /^Ockham: lo que este proyecto ya tiene[\s\S]*las pruebas de este proyecto están en test\//);
+  assert.match(sharedContext({ cwd: root }, { ...env, OCKHAM_LANG: 'es', OCKHAM_FACTS: 'on', OCKHAM_TESTS: 'on' }), /^Ockham: lo que este proyecto ya tiene[\s\S]*las pruebas de este proyecto están en test\//);
 });
 
 test('the list can say only where each helper is and how it is called, or not be given at all', () => {
@@ -105,7 +106,7 @@ test('the list can say only where each helper is and how it is called, or not be
   assert.ok(map.length < full.length);
   assert.equal(sharedContext({ cwd: root, session_id: 's1' }, { ...env, OCKHAM_FACTS: 'off' }), full, 'full is what nobody asking gets');
   assert.equal(sharedContext({ cwd: root, session_id: 's1' }, { ...env, OCKHAM_FACTS: 'off', OCKHAM_LIST: 'off' }), '');
-  assert.match(sharedContext({ cwd: root, session_id: 's1' }, { ...env, OCKHAM_LIST: 'off' }), /^Ockham: this project's tests are in test\//, 'without a list, where the tests are is still said');
+  assert.match(sharedContext({ cwd: root, session_id: 's1' }, { ...env, OCKHAM_LIST: 'off', OCKHAM_TESTS: 'on' }), /^Ockham: this project's tests are in test\//, 'without a list, where the tests are is still said');
   assert.match(sharedContext({ cwd: root }, { ...env, OCKHAM_LANG: 'es', OCKHAM_LIST: 'map' }), /^Ockham: lo que este proyecto ya tiene[^\n]*fichero a fichero:\n- /);
   // The journal counts helpers, not lines: two helpers in two files, in either form.
   const said = readJournal(env).filter((event) => event.event === 'shared');
@@ -177,13 +178,30 @@ test('what was said is written down with the project it was said in', () => {
 
 test('the session hook hands out the rules and then what the project has', async () => {
   const { root, env } = project();
-  const result = await runHook('session-start', '', { ...env, CLAUDE_PROJECT_DIR: root, OCKHAM_RULES: '', OCKHAM_LANG: '', OCKHAM_INDEX: '', OCKHAM_FACTS: '', OCKHAM_CANARY: '' });
+  const result = await runHook('session-start', '', { ...env, CLAUDE_PROJECT_DIR: root, OCKHAM_RULES: '', OCKHAM_LANG: '', OCKHAM_INDEX: '', OCKHAM_FACTS: '', OCKHAM_CANARY: '', OCKHAM_TESTS: 'on' });
   assert.equal(result.code, 0);
   const context = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
   assert.ok(context.startsWith(rules('en')));
   assert.match(context, /\n\nOckham: what this project already has[\s\S]*- slugify\(text\) in src\/lib\/text\.js/);
-  const rulesOnly = await runHook('session-start', '', { ...env, CLAUDE_PROJECT_DIR: root, OCKHAM_RULES: '', OCKHAM_LANG: '', OCKHAM_INDEX: 'off', OCKHAM_CANARY: '' });
+  const rulesOnly = await runHook('session-start', '', { ...env, CLAUDE_PROJECT_DIR: root, OCKHAM_RULES: '', OCKHAM_LANG: '', OCKHAM_INDEX: 'off', OCKHAM_CANARY: '', OCKHAM_TESTS: 'on' });
   assert.equal(JSON.parse(rulesOnly.stdout).hookSpecificOutput.additionalContext, rules('en'));
+});
+
+test('in Codex the write hook reads apply_patch file by file, as if each file were a call of Claude Code', async () => {
+  const { root, env } = project();
+  // Codex names files in a patch by their full path, with forward slashes.
+  const at = (/** @type {string} */ rel) => join(root, rel).replace(/\\/g, '/');
+  const patch = ['*** Begin Patch', `*** Add File: ${at('src/new.js')}`, '+function slugify(text) {}', '*** End Patch'].join('\n');
+  const written = await runHook('pre-write', { hook_event_name: 'PreToolUse', cwd: root, session_id: 's1', turn_id: 't1', tool_name: 'apply_patch', tool_input: { command: patch } }, { ...env, OCKHAM_INDEX: '' });
+  assert.equal(written.code, 0);
+  const output = JSON.parse(written.stdout).hookSpecificOutput;
+  assert.equal(output.hookEventName, 'PreToolUse');
+  assert.match(output.additionalContext, /src\/lib\/text\.js/, 'the second version of a helper is pointed out, as with Write');
+  // A patch that only adds something new says nothing, like a Write that does.
+  const fresh = ['*** Begin Patch', `*** Add File: ${at('src/fine.js')}`, '+export function brandNew() {}', '*** End Patch'].join('\n');
+  const quiet = await runHook('pre-write', { cwd: root, session_id: 's2', tool_name: 'apply_patch', tool_input: { command: fresh } }, { ...env, OCKHAM_INDEX: '' });
+  assert.equal(quiet.code, 0);
+  assert.equal(quiet.stdout, '');
 });
 
 test('the request hook and the write hook answer in the form the host expects, and fast', async () => {

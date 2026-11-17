@@ -36,23 +36,26 @@ test('the compact rules exist in every language, with the same numbers as the fu
 });
 
 test('a subagent gets the compact rules and a session the full ones', () => {
-  assert.equal(subagentContext({}), rules('en', 'compact'));
-  assert.equal(subagentContext({ OCKHAM_LANG: 'es' }), rules('es', 'compact'));
-  assert.equal(sessionContext({}), rules('en', 'full'));
+  const on = { OCKHAM_TESTS: 'on' };
+  assert.equal(subagentContext(on), rules('en', 'compact'));
+  assert.equal(subagentContext({ ...on, OCKHAM_LANG: 'es' }), rules('es', 'compact'));
+  assert.equal(sessionContext(on), rules('en', 'full'));
 });
 
 test('OCKHAM_RULES picks one size for both, or none', () => {
-  assert.equal(sessionContext({ OCKHAM_RULES: 'compact' }), rules('en', 'compact'));
-  assert.equal(subagentContext({ OCKHAM_RULES: 'full' }), rules('en', 'full'));
-  assert.equal(subagentContext({ OCKHAM_RULES: 'off' }), '');
-  assert.equal(subagentContext({ OCKHAM_RULES: 'something else' }), rules('en', 'compact'));
+  const on = { OCKHAM_TESTS: 'on' };
+  assert.equal(sessionContext({ ...on, OCKHAM_RULES: 'compact' }), rules('en', 'compact'));
+  assert.equal(subagentContext({ ...on, OCKHAM_RULES: 'full' }), rules('en', 'full'));
+  assert.equal(subagentContext({ ...on, OCKHAM_RULES: 'off' }), '');
+  assert.equal(subagentContext({ ...on, OCKHAM_RULES: 'something else' }), rules('en', 'compact'));
 });
 
-test('OCKHAM_TESTS=off leaves out the rule about tests, and only that one, in every size and language', () => {
+test('without OCKHAM_TESTS=on the rule about tests is left out, and only that one, in every size and language', () => {
   for (const language of ['en', 'es']) {
     for (const [context, size] of /** @type {[typeof sessionContext, string][]} */ ([[sessionContext, 'full'], [subagentContext, 'compact']])) {
       const whole = rules(language, size);
-      const lean = context({ OCKHAM_LANG: language, OCKHAM_TESTS: 'off' });
+      assert.equal(context({ OCKHAM_LANG: language }), context({ OCKHAM_LANG: language, OCKHAM_TESTS: 'off' }), `${language} ${size}: as shipped is the same as off`);
+      const lean = context({ OCKHAM_LANG: language });
       assert.deepEqual(lean.match(/^\d+\./gm), ['1.', '2.', '3.', '4.', '5.', '6.'], `${language} ${size}`);
       assert.doesNotMatch(lean, /^(?:Tests|Pruebas)$/m);
       assert.doesNotMatch(lean, /\n{3}/);
@@ -78,7 +81,7 @@ test('the hook prints nothing and exits 0 when there is nothing to say', async (
 });
 
 test('the hook hands the compact rules to the host as SubagentStart context, without waiting for stdin', async () => {
-  const result = await runHook({ OCKHAM_RULES: '', OCKHAM_LANG: '', OCKHAM_SUBAGENT_CANARY: 'hazel-7' });
+  const result = await runHook({ OCKHAM_RULES: '', OCKHAM_LANG: '', OCKHAM_SUBAGENT_CANARY: 'hazel-7', OCKHAM_TESTS: 'on' });
   assert.equal(result.code, 0);
   const out = JSON.parse(result.stdout);
   assert.equal(out.hookSpecificOutput.hookEventName, 'SubagentStart');

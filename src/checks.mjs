@@ -17,6 +17,7 @@ import { copiesOf, linesTakenAway, tokens } from './index/copies.mjs';
 import { extract } from './index/extract.mjs';
 import { definitionsIn, testFacts, twinsOf } from './index/lookup.mjs';
 import { isTest, SOURCE } from './index/scan.mjs';
+import { testsOn } from './session.mjs';
 
 export const CHECKS = ['deps', 'twin', 'copy', 'guard', 'test', 'run', 'claim'];
 // The checks that are made when nobody says. One is here only when a measurement said that it
@@ -46,8 +47,8 @@ const BY_DEFAULT = CHECKS;
 
 /**
  * The checks an environment asks for. OCKHAM_CHECKS=off gives none, a list of names gives
- * those, anything else gives the ones that ship on. OCKHAM_TESTS=off takes the one about a
- * missing test out: nobody who asked for no tests wants to be asked for one at the end.
+ * those, anything else gives the ones that ship on. The one about a missing test goes with
+ * the rest of the part about tests: only with OCKHAM_TESTS=on (D23).
  * @param {Record<string, string | undefined>} env
  * @returns {string[]}
  */
@@ -56,7 +57,7 @@ export function checksOn(env) {
   if (asked === 'off') return [];
   const named = asked.split(',').map((name) => name.trim()).filter((name) => CHECKS.includes(name));
   const on = named.length ? named : BY_DEFAULT;
-  return String(env.OCKHAM_TESTS || '').trim().toLowerCase() === 'off' ? on.filter((name) => name !== 'test') : on;
+  return testsOn(env) ? on : on.filter((name) => name !== 'test');
 }
 
 /**

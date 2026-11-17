@@ -47,13 +47,18 @@ export function parseInput(text) {
 }
 
 /**
- * The JSON a hook prints to hand text to the model.
+ * The JSON a hook prints to hand text to the model and, if there is one, a notice to the user.
+ * Claude Code and Codex read it the same way.
  * @param {string} eventName
- * @param {string} text
+ * @param {string} text  for the model
+ * @param {string} [notice]  for the user, never for the model
  * @returns {string}
  */
-export function contextOutput(eventName, text) {
-  return JSON.stringify({ hookSpecificOutput: { hookEventName: eventName, additionalContext: text } });
+export function contextOutput(eventName, text, notice = '') {
+  return JSON.stringify({
+    ...(notice ? { systemMessage: notice } : {}),
+    ...(text ? { hookSpecificOutput: { hookEventName: eventName, additionalContext: text } } : {}),
+  });
 }
 
 /**

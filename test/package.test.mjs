@@ -29,6 +29,35 @@ test('every hook command points at a file that exists', () => {
   for (const rel of files) assert.ok(existsSync(fileURLToPath(new URL(rel, root))), `missing ${rel}`);
 });
 
+test('the Codex plugin is the same plugin: same name and version, and its hooks are the same scripts on the same events', () => {
+  const codex = json('.codex-plugin/plugin.json');
+  assert.equal(codex.name, json('.claude-plugin/plugin.json').name);
+  assert.equal(codex.version, json('package.json').version);
+  assert.equal(codex.hooks, './hooks/codex.json');
+  /** @param {Record<string, any[]>} hooks @param {(hook: Record<string, any>) => string} script */
+  const scripts = (hooks, script) => Object.fromEntries(Object.entries(hooks).map(([event, groups]) => [event, groups.flatMap((group) => group.hooks.map(script))]));
+  const claude = scripts(json('hooks/hooks.json').hooks, (hook) => hook.args[0].replace('${CLAUDE_PLUGIN_ROOT}/', ''));
+  const forCodex = scripts(json('hooks/codex.json').hooks, (hook) => {
+    assert.equal(hook.type, 'command');
+    const [, rel] = /^node "\$\{PLUGIN_ROOT\}\/(hooks\/[a-z-]+\.mjs)"$/.exec(hook.command) ?? [];
+    assert.ok(rel, `a command Codex cannot run from the plugin: ${hook.command}`);
+    assert.ok(existsSync(fileURLToPath(new URL(rel, root))), `missing ${rel}`);
+    return rel;
+  });
+  assert.deepEqual(forCodex, claude);
+  // Codex writes files with apply_patch: the write hook has to be called on it.
+  assert.match(json('hooks/codex.json').hooks.PreToolUse[0].matcher, /(?:^|\|)apply_patch(?:\||$)/);
+});
+
+test('the repository is a marketplace for Codex too, with the plugin at its root', () => {
+  const market = json('.agents/plugins/marketplace.json');
+  const [plugin] = market.plugins;
+  assert.equal(market.plugins.length, 1);
+  assert.equal(plugin.name, 'ockham');
+  assert.deepEqual(plugin.source, { source: 'local', path: './' });
+  assert.ok(plugin.policy.installation && plugin.policy.authentication && plugin.category, 'Codex needs a policy and a category');
+});
+
 test('the package has no runtime dependencies', () => {
   assert.equal(json('package.json').dependencies, undefined);
 });
